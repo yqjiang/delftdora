@@ -1,0 +1,8 @@
+name = Delftdora
+description = Customizations for the Delft University of Technology.
+dependencies[] = islandora
+dependencies[] = islandora_basic_image
+package = Islandora
+version = 7.x-dev
+core = 7.x
+

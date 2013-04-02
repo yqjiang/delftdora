@@ -1,0 +1,184 @@
+<?php
+/**
+ * @file
+ * Module used to house customizations for Delft University of Technology.
+ */
+
+/**
+ * Implements hook_islandora_required_objects().
+ */
+function delftdora_islandora_required_objects(IslandoraTuque $connection) {
+  $module_path = drupal_get_path('module', 'delftdora');
+
+  // Delft Organization Model.
+  $model_organization = $connection->repository->constructObject('model:Organization');
+  $model_organization->owner = 'fedoraAdmin';
+  $model_organization->label = 'Content model for Organization';
+  $model_organization->models = 'fedora-system:ContentModel-3.0';
+  $datastream = $model_organization->constructDatastream('DS-COMPOSITE-MODEL', 'X');
+  $datastream->label = 'DS-COMPOSITE-MODEL';
+  $datastream->mimetype = 'text/xml';
+  $datastream->setContentFromFile("$module_path/data/datastreams/model_Organization/DS-COMPOSITE-MODEL.xml", FALSE);
+  $model_organization->ingestDatastream($datastream);
+
+  // Delft Building Model.
+  $model_building = $connection->repository->constructObject('model:Building');
+  $model_building->owner = 'fedoraAdmin';
+  $model_building->label = 'Content model for Building';
+  $model_building->models = 'fedora-system:ContentModel-3.0';
+  $datastream = $model_building->constructDatastream('DS-COMPOSITE-MODEL', 'X');
+  $datastream->label = 'DS-COMPOSITE-MODEL';
+  $datastream->mimetype = 'text/xml';
+  $datastream->setContentFromFile("$module_path/data/datastreams/model_Building/DS-COMPOSITE-MODEL.xml", FALSE);
+  $model_building->ingestDatastream($datastream);
+
+  // Delft Person Model.
+  $model_person = $connection->repository->constructObject('model:Person');
+  $model_person->owner = 'fedoraAdmin';
+  $model_person->label = 'Content model for Person';
+  $model_person->models = 'fedora-system:ContentModel-3.0';
+  $datastream = $model_person->constructDatastream('DS-COMPOSITE-MODEL', 'X');
+  $datastream->label = 'DS-COMPOSITE-MODEL';
+  $datastream->mimetype = 'text/xml';
+  $datastream->setContentFromFile("$module_path/data/datastreams/model_Person/DS-COMPOSITE-MODEL.xml", FALSE);
+  $model_person->ingestDatastream($datastream);
+
+  return array(
+    'Delft' => array(
+      'title' => 'Delft',
+      'objects' => array(
+        $model_organization,
+        $model_building,
+        $model_person,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_xml_form_builder_forms().
+ */
+function delftdora_islandora_xml_form_builder_forms() {
+  $module_path = drupal_get_path('module', 'delftdora');
+  return array(
+    'SFOAF organization 1' => array(
+      'form_file' => "$module_path/data/forms/model_organization_form.xml",
+    ),
+    'SFOAF person 5' => array(
+      'form_file' => "$module_path/data/forms/model_person_form.xml",
+    ),
+    'Building form 2' => array(
+      'form_file' => "$module_path/data/forms/model_building_form.xml",
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_xml_form_builder_get_transforms().
+ */
+function delftdora_islandora_xml_form_builder_get_transforms() {
+  return array(
+    'sfoaf_to_dc.xslt' => drupal_get_path('module', 'delftdora') . '/transforms/foaf_to_dc.xslt',
+  );
+}
+
+/**
+ * Implements hook_islandora_xml_form_builder_form_associations().
+ */
+function delftdora_islandora_xml_form_builder_form_associations() {
+  return array(
+    'model_Organization' => array(
+      'content_model' => 'model:Organization',
+      'form_name' => 'SFOAF organization 1',
+      'dsid' => 'SFOAF',
+      'title_field' => array('name'),
+      'transform' => 'sfoaf_to_dc.xsl',
+      'template' => FALSE,
+    ),
+    'model_Person' => array(
+      'content_model' => 'model:Person',
+      'form_name' => 'SFOAF person 5',
+      'dsid' => 'SFOAF',
+      'title_field' => array('name'),
+      'transform' => 'sfoaf_to_dc.xsl',
+      'template' => FALSE,
+    ),
+    'model_Building' => array(
+      'content_model' => 'model:Building',
+      'form_name' => 'Building form 2',
+      'dsid' => 'MODS',
+      'title_field' => array('titleInfo', 'title'),
+      'transform' => 'mods_to_dc.xsl',
+      'template' => FALSE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_ingest_steps().
+ */
+function delftdora_model_Organization_islandora_ingest_steps() {
+  return array(
+    'islandora_basic_image' => array(
+      'weight' => 10,
+      'type' => 'form',
+      'form_id' => 'islandora_basic_image_image_upload_form',
+      'module' => 'islandora_basic_image',
+      'file' => 'includes/image_upload.form.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_ingest_steps().
+ */
+function delftdora_model_Building_islandora_ingest_steps() {
+  return array(
+    'islandora_basic_image' => array(
+      'weight' => 10,
+      'type' => 'form',
+      'form_id' => 'islandora_basic_image_image_upload_form',
+      'module' => 'islandora_basic_image',
+      'file' => 'includes/image_upload.form.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_ingest_steps().
+ */
+function delftdora_model_Person_islandora_ingest_steps() {
+  return array(
+    'islandora_basic_image' => array(
+      'weight' => 10,
+      'type' => 'form',
+      'form_id' => 'islandora_basic_image_image_upload_form',
+      'module' => 'islandora_basic_image',
+      'file' => 'includes/image_upload.form.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_CMODEL_PID_islandora_object_ingested().
+ */
+function delftdora_model_Organization_islandora_object_ingested($object) {
+  module_load_include('inc', 'islandora_basic_image', 'includes/derivatives');
+  islandora_basic_image_create_all_derivatives($object);
+}
+
+/**
+ * Implements hook_CMODEL_PID_islandora_object_ingested().
+ */
+function delftdora_model_Person_islandora_object_ingested($object) {
+  module_load_include('inc', 'islandora_basic_image', 'includes/derivatives');
+  islandora_basic_image_create_all_derivatives($object);
+}
+
+/**
+ * Implements hook_CMODEL_PID_islandora_object_ingested().
+ */
+function delftdora_model_Building_islandora_object_ingested($object) {
+  module_load_include('inc', 'islandora_basic_image', 'includes/derivatives');
+  islandora_basic_image_create_all_derivatives($object);
+}
