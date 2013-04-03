@@ -78,7 +78,7 @@ function delftdora_islandora_xml_form_builder_forms() {
  */
 function delftdora_islandora_xml_form_builder_get_transforms() {
   return array(
-    'sfoaf_to_dc.xslt' => drupal_get_path('module', 'delftdora') . '/transforms/foaf_to_dc.xslt',
+    'sfoaf_to_dc.xslt' => drupal_get_path('module', 'delftdora') . '/transforms/sfoaf_to_dc.xslt',
   );
 }
 
