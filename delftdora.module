@@ -1,8 +1,26 @@
 <?php
+
 /**
  * @file
  * Module used to house customizations for Delft University of Technology.
  */
+
+/**
+ * Implements hook_menu().
+ */
+function delftdora_menu() {
+  return array(
+    'admin/islandora/delftdora' => array(
+      'title' => 'Delft Customizations',
+      'description' => 'Configure behviours specific to Delft.',
+      'page callback' => 'drupal_get_form',
+      'access arguments' => array('administer site configuration'),
+      'page arguments' => array('delft_admin'),
+      'file' => 'includes/admin.form.inc',
+      'type' => MENU_NORMAL_ITEM,
+    )
+  );
+}
 
 /**
  * Implements hook_islandora_required_objects().
@@ -44,7 +62,7 @@ function delftdora_islandora_required_objects(IslandoraTuque $connection) {
   $model_person->ingestDatastream($datastream);
 
   return array(
-    'Delft' => array(
+    'delftdora' => array(
       'title' => 'Delft',
       'objects' => array(
         $model_organization,
@@ -181,4 +199,117 @@ function delftdora_model_Person_islandora_object_ingested($object) {
 function delftdora_model_Building_islandora_object_ingested($object) {
   module_load_include('inc', 'islandora_basic_image', 'includes/derivatives');
   islandora_basic_image_create_all_derivatives($object);
+}
+
+/**
+ * Imlements hook_transform_islandora_object_alter
+ * @param AbstractFedoraObject $object
+ * @param array $context
+ */
+function delftdora_islandora_object_alter(AbstractFedoraObject $object, array &$context) {
+  if ($context['action'] != 'ingest') {
+    return;
+  }
+
+  $rels = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel');
+  foreach ($rels as $rel) {
+    $content_models[] = $rel['object']['value'];
+  }
+  $targets = variable_get('delft_content_models', array(''));
+  $shared = array_intersect($content_models, $targets);
+
+  if (count($shared) > 0) {
+    $db_object = new stdClass();
+    $db_object->ingested_pid = $object->id;
+    $result = drupal_write_record('delftdora_ingested_pids', $db_object);
+    $datastream_mappings = array(
+      'MODS' => 'islandora_mods_transform_xslt',
+      'RELS-EXT' => 'islandora_rels_transform_xslt',
+      'SFOAF' => 'sfoaf_xslt',
+    );
+
+    foreach ($datastream_mappings as $stream => $transform) {
+      if ($object[$stream]) {
+        $MODS = $object[$stream]->content;
+        $new_stream = delft_apply_xslt($stream, $transform);
+        if ($new_stream) {
+          $object[$stream]->content = $new_stream;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Takes MODS string as input, and applies transformations
+ * @param string $MODS
+ * @return string
+ */
+function delft_apply_xslt($untransformed, $drupal_variable) {
+  $proc = new XsltProcessor();
+  $xsl = new DomDocument();
+  $xslt = variable_get($drupal_variable, FALSE);
+  if (!$xslt) {
+    return FALSE;
+  }
+  $xsl->loadXML($xslt);
+  $input = new DomDocument();
+  $input->loadXML(trim($untransformed));
+  $xsl = $proc->importStylesheet($xsl);
+  $newdom = $proc->transformToDoc($input);
+  $content = $newdom->saveXML();
+  return $content;
+}
+
+/**
+ * Implements hook_cron().
+ */
+function delftdora_cron() {
+  // Gets all unprocessed pids.
+  $pids_to_process = db_select('delftdora_ingested_pids', 'd')
+          ->fields('d', array('ingested_pid'))
+          ->condition('processed', NULL, 'IS')
+          ->execute()
+          ->fetchAssoc();
+  // To do - send pids out to disseminator for processing
+  // Marks all processed as pids with their process date
+  // Delete successfully processed pids
+  foreach ($pids_to_process as $pid) {
+    delftdora_batch_modify($pid);
+    $num_updated = db_update('delftdora_ingested_pids') // Table name no longer needs {}
+            ->fields(array(
+              'processed' => time(),
+            ))
+            ->condition('ingested_pid', $pid, '=')
+            ->execute();
+    print "$pid $num_updated";
+  }
+}
+
+function delftdora_batch_modify($pid) {
+  $url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
+  $url = "http://delft7.dgi:8080/fedora";
+  $host = str_replace('/fedora', '', $url);
+  $pid = 'uuid:f00d4c33-d192-4dd0-939d-b64bb504c230';
+  //$cmd = "fedora-batch-ingest [object-directory] [log-filepath] [log-format] [format] $host [user] [password] [protocol] [context]";
+
+  $contents = file_get_contents("$url/objects/$pid/methods/sdef:makeBM/AAT");
+  $xml = new DomDocument();
+  $xml->loadXML($contents);
+  $nodes = $xml->getElementsByTagName('RDF');
+  $xpath = new DOMXPath($xml);
+  $xpath->registerNamespace("fd", "http://www.fedora.info/definitions");
+  $pids = $xpath->query("//fd:addObject/@pid");
+  $labels = $xpath->query("//fd:addObject/@label");
+  $content_models = $xpath->query("//fd:addObject/@contentModel");
+  $length = $nodes->length;
+  for ($counter = 0; $counter < $length; $counter++){
+    $rels_ext = $nodes->item($counter)->ownerDocument->saveXML($nodes->item($counter));
+    $pid = $pids->item($counter)->nodeValue;
+    $pid = str_replace('info:fedora/', '', $pid);
+    $content_model = $content_models->item($counter)->nodeValue;
+    $content_model = str_replace('info:fedora/', '', $content_model);
+    $label = $labels->item($counter)->nodeValue;
+  }
+
 }
