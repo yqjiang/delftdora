@@ -92,18 +92,9 @@ function delftdora_islandora_xml_form_builder_forms() {
 }
 
 /**
- * Implements hook_islandora_xml_form_builder_get_transforms().
- */
-function delftdora_islandora_xml_form_builder_get_transforms() {
-  return array(
-    'sfoaf_to_dc.xslt' => drupal_get_path('module', 'delftdora') . '/transforms/sfoaf_to_dc.xslt',
-  );
-}
-
-/**
  * Implements hook_islandora_xml_form_builder_form_associations().
  */
-function delftdora_islandora_xml_form_builder_form_associations() {
+function delftdora_xml_form_builder_form_associations() {
   return array(
     'model_Organization' => array(
       'content_model' => 'model:Organization',
@@ -215,26 +206,18 @@ function delftdora_islandora_object_alter(AbstractFedoraObject $object, array &$
   foreach ($rels as $rel) {
     $content_models[] = $rel['object']['value'];
   }
-  $targets = variable_get('delft_content_models', array(''));
+  $targets = variable_get('delftdora_content_models', array(''));
   $shared = array_intersect($content_models, $targets);
 
   if (count($shared) > 0) {
     $db_object = new stdClass();
     $db_object->ingested_pid = $object->id;
     $result = drupal_write_record('delftdora_ingested_pids', $db_object);
-    $datastream_mappings = array(
-      'MODS' => 'islandora_mods_transform_xslt',
-      'RELS-EXT' => 'islandora_rels_transform_xslt',
-      'SFOAF' => 'sfoaf_xslt',
-    );
-
-    foreach ($datastream_mappings as $stream => $transform) {
-      if ($object[$stream]) {
-        $MODS = $object[$stream]->content;
-        $new_stream = delft_apply_xslt($stream, $transform);
-        if ($new_stream) {
-          $object[$stream]->content = $new_stream;
-        }
+    if ($object['RELS-EXT']) {
+      $rels = $object['RELS-EXT']->content;
+      $new_stream = delftdora_apply_xslt($rels, 'delfdora_rels_transform');
+      if ($new_stream) {
+        $object[$stream]->content = $new_stream;
       }
     }
   }
@@ -245,7 +228,7 @@ function delftdora_islandora_object_alter(AbstractFedoraObject $object, array &$
  * @param string $MODS
  * @return string
  */
-function delft_apply_xslt($untransformed, $drupal_variable) {
+function delftdora_apply_xslt($untransformed, $drupal_variable) {
   $proc = new XsltProcessor();
   $xsl = new DomDocument();
   $xslt = variable_get($drupal_variable, FALSE);
@@ -282,34 +265,79 @@ function delftdora_cron() {
             ))
             ->condition('ingested_pid', $pid, '=')
             ->execute();
-    print "$pid $num_updated";
   }
 }
 
-function delftdora_batch_modify($pid) {
-  $url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
-  $url = "http://delft7.dgi:8080/fedora";
-  $host = str_replace('/fedora', '', $url);
+function fedora_batch_modify($pid) {
+  $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
+  $fedora_url = "http://delft7.dgi:8080/fedora";
   $pid = 'uuid:f00d4c33-d192-4dd0-939d-b64bb504c230';
-  //$cmd = "fedora-batch-ingest [object-directory] [log-filepath] [log-format] [format] $host [user] [password] [protocol] [context]";
+  $fedora_disseminator = "$fedora_url/objects/$pid/methods/sdef:makeBM";
+  $delft_temp_dir = 'delft_input';
+  $directory = 'public://' . $delft_temp_dir;
+  file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
 
-  $contents = file_get_contents("$url/objects/$pid/methods/sdef:makeBM/AAT");
-  $xml = new DomDocument();
-  $xml->loadXML($contents);
-  $nodes = $xml->getElementsByTagName('RDF');
-  $xpath = new DOMXPath($xml);
-  $xpath->registerNamespace("fd", "http://www.fedora.info/definitions");
-  $pids = $xpath->query("//fd:addObject/@pid");
-  $labels = $xpath->query("//fd:addObject/@label");
-  $content_models = $xpath->query("//fd:addObject/@contentModel");
-  $length = $nodes->length;
-  for ($counter = 0; $counter < $length; $counter++){
-    $rels_ext = $nodes->item($counter)->ownerDocument->saveXML($nodes->item($counter));
-    $pid = $pids->item($counter)->nodeValue;
-    $pid = str_replace('info:fedora/', '', $pid);
-    $content_model = $content_models->item($counter)->nodeValue;
-    $content_model = str_replace('info:fedora/', '', $content_model);
-    $label = $labels->item($counter)->nodeValue;
+  $att = file_get_contents("$fedora_disseminator/AAT");
+  $att_directives_file = file_save_data($att, $directory);
+  $att_directives_filepath = drupal_realpath($att_directives_file->uri);
+
+  $geonames = file_get_contents("$fedora_disseminator/geonames");
+  $geonames_directives_file = file_save_data($geonames, $directory);
+  $geonames_directives_filepath = drupal_realpath($geonames_directives_file->uri);
+  $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
+  $host = str_replace('/fedora', '', $fedora_url);
+  $user = 'fedoraAdmin';
+  $password = variable_get('delftdora_fedora_password', '');
+  $log_filepath = '';
+  $protocol = 'http';
+  $execute_directives = 'exec';
+  $context = 'fedora';
+  $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/server/bin');
+  foreach (array($att_directives_filepath, $geonames_directives_filepath) as $directive) {
+    $cmd = "$executable_path/fedora-modify.sh $host $user $password $directive $log_filepath $protocol $execute_directives $context";
+    exec($cmd, $output);
+    print $output;
   }
+}
 
+/**
+ * Implements hook_xml_form_builder_get_self_transforms().
+ *
+ * Grabs any XSLTs from the "self_transforms" directory inside of this module.
+ */
+function delftdora_xml_form_builder_get_self_transforms() {
+  $path = drupal_get_path('module', 'delftdora');
+  $transforms = array();
+  $include_path = "$path/self_transforms";
+  $dir = opendir($include_path);
+  if ($dir !== FALSE) {
+    while (($file = readdir($dir)) !== FALSE) {
+      if (preg_match('/\.xslt?$/', $file)) {
+        $transforms["$file"] = "$include_path/$file";
+      }
+    }
+  }
+  closedir($dir);
+  return $transforms;
+}
+
+/**
+ * Implements hook_xml_form_builder_get_transforms().
+ *
+ * Grabs any XSLTs from the "transforms" directory inside of this module.
+ */
+function delftdora_xml_form_builder_get_transforms() {
+  $p = drupal_get_path('module', 'delftdora');
+  $transforms = array();
+  $include_path = "$p/transforms";
+  $dir = opendir($include_path);
+  if ($dir !== FALSE) {
+    while (($file = readdir($dir)) !== FALSE) {
+      if (preg_match('/\.xslt?$/', $file)) {
+        $transforms["$file"] = "$include_path/$file";
+      }
+    }
+  }
+  closedir($dir);
+  return $transforms;
 }
