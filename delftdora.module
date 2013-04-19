@@ -254,25 +254,21 @@ function delftdora_cron() {
           ->condition('processed', NULL, 'IS')
           ->execute()
           ->fetchAssoc();
-  // To do - send pids out to disseminator for processing
-  // Marks all processed as pids with their process date
-  // Delete successfully processed pids
+
   foreach ($pids_to_process as $pid) {
     delftdora_batch_modify($pid);
-    $num_updated = db_update('delftdora_ingested_pids') // Table name no longer needs {}
-            ->fields(array(
-              'processed' => time(),
-            ))
-            ->condition('ingested_pid', $pid, '=')
+    $num_deleted = db_delete('delftdora_ingested_pids')
+            ->condition('ingested_pid', $pid)
             ->execute();
   }
 }
 
-function fedora_batch_modify($pid) {
+function delftdora_batch_modify($pid) {
   $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
-  $fedora_url = "http://delft7.dgi:8080/fedora";
-  $pid = 'uuid:f00d4c33-d192-4dd0-939d-b64bb504c230';
   $fedora_disseminator = "$fedora_url/objects/$pid/methods/sdef:makeBM";
+  $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
+  $path_parts = parse_url($fedora_url);
+  $host = $path_parts['host'] . ':' . $path_parts['port'];
   $delft_temp_dir = 'delft_input';
   $directory = 'public://' . $delft_temp_dir;
   file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
@@ -284,20 +280,22 @@ function fedora_batch_modify($pid) {
   $geonames = file_get_contents("$fedora_disseminator/geonames");
   $geonames_directives_file = file_save_data($geonames, $directory);
   $geonames_directives_filepath = drupal_realpath($geonames_directives_file->uri);
-  $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
-  $host = str_replace('/fedora', '', $fedora_url);
+
+  $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/client/bin');
   $user = 'fedoraAdmin';
   $password = variable_get('delftdora_fedora_password', '');
-  $log_filepath = '';
+  // we have been unable to find a working logging path
+  $log_filepath = "' ";
   $protocol = 'http';
   $execute_directives = 'exec';
   $context = 'fedora';
-  $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/server/bin');
-  foreach (array($att_directives_filepath, $geonames_directives_filepath) as $directive) {
-    $cmd = "$executable_path/fedora-modify.sh $host $user $password $directive $log_filepath $protocol $execute_directives $context";
-    exec($cmd, $output);
-    print $output;
-  }
+
+  exec("bash -c \"export FEDORA_HOME='/usr/local/fedora'; $executable_path/fedora-modify.sh $host $user $password $att_directives_filepath $log_filepath $protocol $execute_directives $context\"", $output);
+  exec("bash -c \"export FEDORA_HOME='/usr/local/fedora'; $executable_path/fedora-modify.sh $host $user $password $geonames_directives_filepath $log_filepath $protocol $execute_directives $context\"", $output);
+
+
+  file_delete($att_directives_file);
+  file_delete($geonames_directives_file);
 }
 
 /**
@@ -340,4 +338,23 @@ function delftdora_xml_form_builder_get_transforms() {
   }
   closedir($dir);
   return $transforms;
+}
+
+//for local testing only
+function delftdora_batch_modify_tester() {
+
+  $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
+  $path_parts = parse_url($fedora_url);
+  $host = $path_parts['host'] . ':' . $path_parts['port'];
+
+  $att_directives_filepath = '/Applications/MAMP/htdocs/DevSeven/sites/default/files/delft_input/filerB54Ln';
+  $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/client/bin');
+  $user = 'fedoraAdmin';
+  $password = variable_get('delftdora_fedora_password', "''");
+  $log_filepath = "' '";
+  $protocol = 'http';
+  $execute_directives = 'exec';
+  $context = 'fedora';
+  $cmd = "bash -c \"export FEDORA_HOME='/usr/local/fedora'; $executable_path/fedora-modify.sh $host $user $password $att_directives_filepath $log_filepath $protocol $execute_directives $context\"";
+  exec("bash -c \"export FEDORA_HOME='/usr/local/fedora'; $executable_path/fedora-modify.sh $host $user $password $att_directives_filepath $log_filepath $protocol $execute_directives $context\"", $output);
 }

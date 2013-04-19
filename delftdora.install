@@ -43,4 +43,5 @@ function delftdora_install() {
 function delftdora_uninstall() {
   variable_del('delftdora_rels_transform_xslt');
   variable_del('delftdora_content_models');
+  variable_del('delftdora_fedora_log_path');
 }
