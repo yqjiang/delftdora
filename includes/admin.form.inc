@@ -13,7 +13,7 @@ function delft_admin($form, &$form_state) {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $form = array();
   $password = variable_get('delftdora_fedora_password', '');
-  $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/client/bin');
+  $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/server/bin');
   $log_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/server/logs');
 
   $form['delftdora_fedora_password'] = array(
@@ -36,29 +36,6 @@ function delft_admin($form, &$form_state) {
     '#default_value' => $log_path,
   );
 
-  $rels_xslt = variable_get('delft_rels_transform_xslt', FALSE);
-  $rels_message = $rels_xslt ? 'Change RELS-EXT XSLT' : 'Add RELS-EXT XSLT';
-  $rels_description = $rels_xslt ? t('Change xslt used for rels transformations.') : t('Add xslt to use for rels transformations.');
-
-  if ($rels_xslt) {
-    $form['rels_wrapper'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Current RELS-EXT XSLT'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-
-    $form['rels_wrapper']['current'] = array(
-      '#type' => 'item',
-      '#markup' => "<pre>" . htmlentities("$rels_xslt") . "</pre>",
-    );
-  }
-
-  $form['rels_xslt'] = array(
-    '#type' => 'file',
-    '#title' => t($rels_message),
-    '#description' => $rels_description,
-  );
 
   $form['table_wrapper'] = array(
     '#type' => 'fieldset',
