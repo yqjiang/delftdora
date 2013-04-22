@@ -205,13 +205,13 @@ function delftdora_islandora_object_alter(AbstractFedoraObject $object, array &$
   foreach ($rels as $rel) {
     $content_models[] = $rel['object']['value'];
   }
-  $targets = variable_get('delftdora_content_models', array(''));
+  $targets = variable_get('delftdora_content_models', array());
   $shared = array_intersect($content_models, $targets);
 
   if (count($shared) > 0) {
     $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
     $pid = $object->id;
-    $sdef_url = "$fedora_url/objects/$pid/methods/methods/sdef:makeDS/RELS-EXT";
+    $sdef_url = "$fedora_url/objects/$pid/methods/sdef:makeDS/RELS-EXT";
     $new_rels = file_get_contents($sdef_url);
     if ($new_rels) {
       $object['RELS-EXT']->content = $new_rels;
@@ -247,7 +247,6 @@ function delftdora_cron() {
 function delftdora_batch_modify($pid) {
   $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
   $fedora_disseminator = "$fedora_url/objects/$pid/methods/sdef:makeBM";
-  $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
   $path_parts = parse_url($fedora_url);
   $host = $path_parts['host'] . ':' . $path_parts['port'];
   $delft_temp_dir = 'delft_input';
