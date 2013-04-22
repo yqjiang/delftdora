@@ -18,7 +18,7 @@ function delftdora_menu() {
       'page arguments' => array('delft_admin'),
       'file' => 'includes/admin.form.inc',
       'type' => MENU_NORMAL_ITEM,
-    )
+    ),
   );
 }
 
@@ -91,6 +91,9 @@ function delftdora_islandora_xml_form_builder_forms() {
   );
 }
 
+/**
+ * Implements hook_xml_form_builder_form_associations().
+ */
 function delftdora_xml_form_builder_form_associations() {
   return array(
     'model_Organization' => array(
@@ -190,15 +193,14 @@ function delftdora_model_Building_islandora_object_ingested($object) {
 }
 
 /**
- * Imlements hook_transform_islandora_object_alter
- * @param AbstractFedoraObject $object
- * @param array $context
+ * Implements hook_islandora_object_alter().
  */
 function delftdora_islandora_object_alter(AbstractFedoraObject $object, array &$context) {
   if ($context['action'] != 'ingest') {
     return;
   }
 
+  $content_models = array();
   $rels = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel');
   foreach ($rels as $rel) {
     $content_models[] = $rel['object']['value'];
@@ -226,19 +228,22 @@ function delftdora_islandora_object_alter(AbstractFedoraObject $object, array &$
 function delftdora_cron() {
   // Gets all unprocessed pids.
   $pids_to_process = db_select('delftdora_ingested_pids', 'd')
-          ->fields('d', array('ingested_pid'))
-          ->condition('processed', NULL, 'IS')
-          ->execute()
-          ->fetchAssoc();
+    ->fields('d', array('ingested_pid'))
+    ->condition('processed', NULL, 'IS')
+    ->execute()
+    ->fetchAssoc();
 
   foreach ($pids_to_process as $pid) {
     delftdora_batch_modify($pid);
     $num_deleted = db_delete('delftdora_ingested_pids')
-            ->condition('ingested_pid', $pid)
-            ->execute();
+      ->condition('ingested_pid', $pid)
+      ->execute();
   }
 }
 
+/**
+ * Execute a Fedora batchModify operation.
+ */
 function delftdora_batch_modify($pid) {
   $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
   $fedora_disseminator = "$fedora_url/objects/$pid/methods/sdef:makeBM";
@@ -260,7 +265,7 @@ function delftdora_batch_modify($pid) {
   $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/client/bin');
   $user = 'fedoraAdmin';
   $password = variable_get('delftdora_fedora_password', '');
-  // we have been unable to find a working logging path
+  // We have been unable to find a working logging path.
   $log_filepath = "' ";
   $protocol = 'http';
   $execute_directives = 'exec';
@@ -268,7 +273,6 @@ function delftdora_batch_modify($pid) {
 
   exec("bash -c \"export FEDORA_HOME='/usr/local/fedora'; $executable_path/fedora-modify.sh $host $user $password $att_directives_filepath $log_filepath $protocol $execute_directives $context\"", $output);
   exec("bash -c \"export FEDORA_HOME='/usr/local/fedora'; $executable_path/fedora-modify.sh $host $user $password $geonames_directives_filepath $log_filepath $protocol $execute_directives $context\"", $output);
-
 
   file_delete($att_directives_file);
   file_delete($geonames_directives_file);
@@ -315,4 +319,3 @@ function delftdora_xml_form_builder_get_transforms() {
   closedir($dir);
   return $transforms;
 }
-

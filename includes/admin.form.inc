@@ -2,7 +2,6 @@
 
 /**
  * @file
- *
  * Admin callbacks for Islandora Preingest Transform
  */
 
@@ -36,7 +35,6 @@ function delft_admin($form, &$form_state) {
     '#default_value' => $log_path,
   );
 
-
   $form['table_wrapper'] = array(
     '#type' => 'fieldset',
     '#title' => t('Select Content Models'),
@@ -53,10 +51,7 @@ function delft_admin($form, &$form_state) {
 }
 
 /**
- * admin fomr validator
- *
- * @param <type> $form
- * @param <type> $form_state
+ * Admin form validate.
  */
 function delft_admin_validate($form, &$form_state) {
   if (isset($form_state['values'])) {
@@ -67,17 +62,14 @@ function delft_admin_validate($form, &$form_state) {
         $form_state['storage']['rels_file'] = $rels_file;
       }
       else {
-        form_set_error('file', t('Failed to write the uploaded file to the site\'s file folder.'));
+        form_set_error('file', t("Failed to write the uploaded file to the site's file folder."));
       }
     }
   }
 }
 
 /**
- * admin form submit
- *
- * @param <type> $form
- * @param <type> $form_state
+ * Admin form submit.
  */
 function delft_admin_submit($form, &$form_state) {
 
@@ -92,4 +84,3 @@ function delft_admin_submit($form, &$form_state) {
   variable_set('delftdora_fedora_password', $form_state['values']['delftdora_fedora_password']);
   variable_set('delftdora_fedora_log_path', $form_state['values']['delftdora_fedora_log_path']);
 }
-
