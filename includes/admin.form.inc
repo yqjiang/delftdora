@@ -43,8 +43,7 @@ function delft_admin($form, &$form_state) {
     '#collapsed' => FALSE,
   );
 
-  $form['rels_ext_select']['cmodels'] = islandora_content_model_select_table_form_element('delft_content_models');
-  $form['rels_ext_select']['cmodels']['#default_value'] = variable_get('delftdora_content_models', array());
+  $form['rels_ext_select']['cmodels'] = islandora_content_model_select_table_form_element('delftdora_content_models');
   $form['islandora_transform_submit'] = array(
     '#value' => t('Save Configuration'),
     '#type' => 'submit',
