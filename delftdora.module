@@ -200,12 +200,13 @@ function delftdora_islandora_object_alter(AbstractFedoraObject $object, array &$
     return;
   }
 
+  // Handle RELS-EXT replacement.
   $content_models = array();
   $rels = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel');
   foreach ($rels as $rel) {
     $content_models[] = $rel['object']['value'];
   }
-  $targets = variable_get('delftdora_content_models', array());
+  $targets = variable_get('delftdora_rels_content_models', array());
   $shared = array_intersect($content_models, $targets);
 
   if (count($shared) > 0) {
@@ -216,9 +217,17 @@ function delftdora_islandora_object_alter(AbstractFedoraObject $object, array &$
     if ($new_rels) {
       $object['RELS-EXT']->content = $new_rels;
     }
-    $db_object = new stdClass();
-    $db_object->ingested_pid = $object->id;
-    $result = drupal_write_record('delftdora_ingested_pids', $db_object);
+  }
+
+  // Handle batchModify cron setup.
+  $batch_modify_cmodels = variable_get('delft_batch_modify_cmodels', array());
+  foreach ($batch_modify_cmodels as $bm_model) {
+    if (in_array($bm_model['cmodel'], $content_models)) {
+      $db_object = new stdClass();
+      $db_object->ingested_pid = $object->id;
+      $result = drupal_write_record('delftdora_ingested_pids', $db_object);
+      break;
+    }
   }
 }
 
@@ -246,20 +255,12 @@ function delftdora_cron() {
  */
 function delftdora_batch_modify($pid) {
   $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
-  $fedora_disseminator = "$fedora_url/objects/$pid/methods/sdef:makeBM";
+  $fedora_disseminator = "$fedora_url/objects/$pid/methods/";
   $path_parts = parse_url($fedora_url);
   $host = $path_parts['host'] . ':' . $path_parts['port'];
   $delft_temp_dir = 'delft_input';
   $directory = 'public://' . $delft_temp_dir;
   file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
-
-  $att = file_get_contents("$fedora_disseminator/AAT");
-  $att_directives_file = file_save_data($att, $directory);
-  $att_directives_filepath = drupal_realpath($att_directives_file->uri);
-
-  $geonames = file_get_contents("$fedora_disseminator/geonames");
-  $geonames_directives_file = file_save_data($geonames, $directory);
-  $geonames_directives_filepath = drupal_realpath($geonames_directives_file->uri);
 
   $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/client/bin');
   $user = 'fedoraAdmin';
@@ -270,11 +271,26 @@ function delftdora_batch_modify($pid) {
   $execute_directives = 'exec';
   $context = 'fedora';
 
-  exec("bash -c \"export FEDORA_HOME='/usr/local/fedora'; $executable_path/fedora-modify.sh $host $user $password $att_directives_filepath $log_filepath $protocol $execute_directives $context\"", $output);
-  exec("bash -c \"export FEDORA_HOME='/usr/local/fedora'; $executable_path/fedora-modify.sh $host $user $password $geonames_directives_filepath $log_filepath $protocol $execute_directives $context\"", $output);
+  $object = islandora_object_load($pid);
+  $content_models = array();
+  $rels = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel');
+  foreach ($rels as $rel) {
+    $content_models[] = $rel['object']['value'];
+  }
 
-  file_delete($att_directives_file);
-  file_delete($geonames_directives_file);
+  $batch_modify_cmodels = variable_get('delft_batch_modify_cmodels', array());
+  foreach ($batch_modify_cmodels as $bm_model) {
+    if (in_array($bm_model['cmodel'], $content_models)) {
+      $disseminator_content = file_get_contents($fedora_disseminator . $bm_model['sdef'] . '/' . $bm_model['method']);
+      if ($disseminator_content != '<null/>') {
+        $disseminator_file = file_save_data($disseminator_content, $directory);
+        $disseminator_filepath = drupal_realpath($disseminator_file->uri);
+
+        exec("bash -c \"export FEDORA_HOME='/usr/local/fedora'; $executable_path/fedora-modify.sh $host $user $password $disseminator_filepath $log_filepath $protocol $execute_directives $context\"", $output);
+        file_delete($disseminator_file);
+      }
+    }
+  }
 }
 
 /**
