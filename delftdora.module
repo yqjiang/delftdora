@@ -253,6 +253,12 @@ function delftdora_cron() {
  */
 function delftdora_batch_modify($pid) {
   $return = TRUE;
+
+  $object = islandora_object_load($pid);
+  if (!$object) {
+    return $return;
+  }
+
   $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
   $fedora_disseminator = "$fedora_url/objects/$pid/methods/";
   $path_parts = parse_url($fedora_url);
@@ -270,7 +276,6 @@ function delftdora_batch_modify($pid) {
   $execute_directives = 'exec';
   $context = 'fedora';
 
-  $object = islandora_object_load($pid);
   $content_models = array();
   $rels = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel');
   foreach ($rels as $rel) {
