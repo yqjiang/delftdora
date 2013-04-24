@@ -13,7 +13,7 @@ function delft_admin($form, &$form_state) {
   $form = array();
   $form['#tree'] = TRUE;
   $password = variable_get('delftdora_fedora_password', '');
-  $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/server/bin');
+  $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/client/bin');
   $log_path = variable_get('delftdora_fedora_log_path', '/usr/local/fedora/server/logs');
 
   $form['delftdora_fedora_password'] = array(
