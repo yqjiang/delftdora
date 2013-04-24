@@ -195,11 +195,7 @@ function delftdora_model_Building_islandora_object_ingested($object) {
 /**
  * Implements hook_islandora_object_alter().
  */
-function delftdora_islandora_object_alter(AbstractFedoraObject $object, array &$context) {
-  if ($context['action'] != 'ingest') {
-    return;
-  }
-
+function delftdora_islandora_object_ingested($object) {
   // Handle RELS-EXT replacement.
   $content_models = array();
   $rels = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel');
