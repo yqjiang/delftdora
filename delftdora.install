@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for this module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function delftdora_schema() {
+  $schema['delftdora_ingested_pids'] = array(
+    'description' => 'Table that stores Ingested Pids.',
+    'fields' => array(
+      'ingested_pid' => array(
+        'type' => 'varchar',
+        'length' => 127,
+        'not null' => TRUE,
+        'description' => 'Pid created on object ingestion',
+      ),
+      'processed' => array(
+        'description' => 'Datestamped when processed.',
+        'type' => 'int',
+        'length' => 11,
+      ),
+    ),
+    'primary key' => array('ingested_pid'),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ *
+ * @see islandora_islandora_required_objects()
+ */
+function delftdora_install() {
+  module_load_include('inc', 'islandora', 'includes/solution_packs');
+  islandora_install_solution_pack('delftdora');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function delftdora_uninstall() {
+  variable_del('delftdora_rels_transform_xslt');
+  variable_del('delftdora_content_models');
+  variable_del('delftdora_fedora_log_path');
+}

@@ -1,8 +1,26 @@
 <?php
+
 /**
  * @file
  * Module used to house customizations for Delft University of Technology.
  */
+
+/**
+ * Implements hook_menu().
+ */
+function delftdora_menu() {
+  return array(
+    'admin/islandora/delftdora' => array(
+      'title' => 'Delft Customizations',
+      'description' => 'Configure behviours specific to Delft.',
+      'page callback' => 'drupal_get_form',
+      'access arguments' => array('administer site configuration'),
+      'page arguments' => array('delft_admin'),
+      'file' => 'includes/admin.form.inc',
+      'type' => MENU_NORMAL_ITEM,
+    ),
+  );
+}
 
 /**
  * Implements hook_islandora_required_objects().
@@ -44,7 +62,7 @@ function delftdora_islandora_required_objects(IslandoraTuque $connection) {
   $model_person->ingestDatastream($datastream);
 
   return array(
-    'Delft' => array(
+    'delftdora' => array(
       'title' => 'Delft',
       'objects' => array(
         $model_organization,
@@ -74,15 +92,6 @@ function delftdora_islandora_xml_form_builder_forms() {
 }
 
 /**
- * Implements hook_islandora_xml_form_builder_get_transforms().
- */
-function delftdora_islandora_xml_form_builder_get_transforms() {
-  return array(
-    'sfoaf_to_dc.xslt' => drupal_get_path('module', 'delftdora') . '/transforms/sfoaf_to_dc.xslt',
-  );
-}
-
-/**
  * Implements hook_islandora_xml_form_builder_form_associations().
  */
 function delftdora_islandora_xml_form_builder_form_associations() {
@@ -93,6 +102,7 @@ function delftdora_islandora_xml_form_builder_form_associations() {
       'dsid' => 'SFOAF',
       'title_field' => array('name'),
       'transform' => 'sfoaf_to_dc.xsl',
+      'self_transform' => 'cleanup.SFOAF.xsl',
       'template' => FALSE,
     ),
     'model_Person' => array(
@@ -101,6 +111,7 @@ function delftdora_islandora_xml_form_builder_form_associations() {
       'dsid' => 'SFOAF',
       'title_field' => array('name'),
       'transform' => 'sfoaf_to_dc.xsl',
+      'self_transform' => 'cleanup.SFOAF.xsl',
       'template' => FALSE,
     ),
     'model_Building' => array(
@@ -109,6 +120,7 @@ function delftdora_islandora_xml_form_builder_form_associations() {
       'dsid' => 'MODS',
       'title_field' => array('titleInfo', 'title'),
       'transform' => 'mods_to_dc.xsl',
+      'self_transform' => 'cleanup.MODS.xsl',
       'template' => FALSE,
     ),
   );
@@ -181,4 +193,160 @@ function delftdora_model_Person_islandora_object_ingested($object) {
 function delftdora_model_Building_islandora_object_ingested($object) {
   module_load_include('inc', 'islandora_basic_image', 'includes/derivatives');
   islandora_basic_image_create_all_derivatives($object);
+}
+
+/**
+ * Implements hook_islandora_object_alter().
+ */
+function delftdora_islandora_object_ingested($object) {
+  // Handle RELS-EXT replacement.
+  $content_models = array();
+  $rels = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel');
+  foreach ($rels as $rel) {
+    $content_models[] = $rel['object']['value'];
+  }
+  $targets = variable_get('delftdora_rels_content_models', array());
+  $shared = array_intersect($content_models, $targets);
+
+  if (count($shared) > 0) {
+    $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
+    $pid = $object->id;
+    $sdef_url = "$fedora_url/objects/$pid/methods/sdef:makeDS/RELS-EXT";
+    $new_rels = file_get_contents($sdef_url);
+    if ($new_rels) {
+      $object['RELS-EXT']->content = $new_rels;
+    }
+  }
+
+  // Handle batchModify cron setup.
+  $batch_modify_cmodels = variable_get('delft_batch_modify_cmodels', array());
+  foreach ($batch_modify_cmodels as $bm_model) {
+    if (in_array($bm_model['cmodel'], $content_models)) {
+      $db_object = new stdClass();
+      $db_object->ingested_pid = $object->id;
+      $result = drupal_write_record('delftdora_ingested_pids', $db_object);
+      break;
+    }
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function delftdora_cron() {
+  // Gets all unprocessed pids.
+  $pids_to_process = db_select('delftdora_ingested_pids', 'd')
+    ->fields('d', array('ingested_pid'))
+    ->condition('processed', NULL, 'IS')
+    ->execute()
+    ->fetchAssoc();
+
+  foreach ($pids_to_process as $pid) {
+    $result = delftdora_batch_modify($pid);
+    if ($result) {
+      $num_deleted = db_delete('delftdora_ingested_pids')
+        ->condition('ingested_pid', $pid)
+        ->execute();
+    }
+  }
+}
+
+/**
+ * Execute a Fedora batchModify operation.
+ */
+function delftdora_batch_modify($pid) {
+  $return = TRUE;
+
+  $object = islandora_object_load($pid);
+  if (!$object) {
+    return $return;
+  }
+
+  $fedora_url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
+  $fedora_disseminator = "$fedora_url/objects/$pid/methods/";
+  $path_parts = parse_url($fedora_url);
+  $host = $path_parts['host'] . ':' . $path_parts['port'];
+  $delft_temp_dir = 'delft_input';
+  $directory = 'public://' . $delft_temp_dir;
+  file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
+
+  $executable_path = variable_get('delftdora_fedora_path', '/usr/local/fedora/client/bin');
+  $user = 'fedoraAdmin';
+  $password = variable_get('delftdora_fedora_password', '');
+  // We have been unable to find a working logging path.
+  $log_filepath = "/tmp/batch.log";
+  $protocol = 'http';
+  $execute_directives = 'exec';
+  $context = 'fedora';
+
+  $content_models = array();
+  $rels = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel');
+  foreach ($rels as $rel) {
+    $content_models[] = $rel['object']['value'];
+  }
+
+  $batch_modify_cmodels = variable_get('delft_batch_modify_cmodels', array());
+  foreach ($batch_modify_cmodels as $bm_model) {
+    if (in_array($bm_model['cmodel'], $content_models)) {
+      $disseminator_content = file_get_contents($fedora_disseminator . $bm_model['sdef'] . '/' . $bm_model['method']);
+      if ($disseminator_content != '<null/>') {
+        $disseminator_file = file_save_data($disseminator_content, $directory);
+        $disseminator_filepath = drupal_realpath($disseminator_file->uri);
+
+        $output = array();
+        exec("bash -c \"export FEDORA_HOME='/usr/local/fedora'; $executable_path/fedora-modify.sh $host $user $password $disseminator_filepath $log_filepath $protocol $execute_directives $context\"", $output);
+        file_delete($disseminator_file);
+        if (empty($output)) {
+          $return = FALSE;
+          watchdog('delft', 'Error running batchModify for @pid with @disseminator',
+            array('@pid' => $pid, '@disseminator' => $bm_model['sdef'] . '/' . $bm_model['method'])
+          );
+        }
+      }
+    }
+  }
+
+  return $return;
+}
+
+/**
+ * Implements hook_xml_form_builder_get_self_transforms().
+ *
+ * Grabs any XSLTs from the "self_transforms" directory inside of this module.
+ */
+function delftdora_xml_form_builder_get_self_transforms() {
+  $path = drupal_get_path('module', 'delftdora');
+  $transforms = array();
+  $include_path = "$path/self_transforms";
+  $dir = opendir($include_path);
+  if ($dir !== FALSE) {
+    while (($file = readdir($dir)) !== FALSE) {
+      if (preg_match('/\.xslt?$/', $file)) {
+        $transforms["$file"] = "$include_path/$file";
+      }
+    }
+  }
+  closedir($dir);
+  return $transforms;
+}
+
+/**
+ * Implements hook_xml_form_builder_get_transforms().
+ *
+ * Grabs any XSLTs from the "transforms" directory inside of this module.
+ */
+function delftdora_xml_form_builder_get_transforms() {
+  $p = drupal_get_path('module', 'delftdora');
+  $transforms = array();
+  $include_path = "$p/transforms";
+  $dir = opendir($include_path);
+  if ($dir !== FALSE) {
+    while (($file = readdir($dir)) !== FALSE) {
+      if (preg_match('/\.xslt?$/', $file)) {
+        $transforms["$file"] = "$include_path/$file";
+      }
+    }
+  }
+  closedir($dir);
+  return $transforms;
 }
