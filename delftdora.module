@@ -102,6 +102,7 @@ function delftdora_islandora_xml_form_builder_form_associations() {
       'dsid' => 'SFOAF',
       'title_field' => array('name'),
       'transform' => 'sfoaf_to_dc.xsl',
+      'self_transform' => 'cleanup.SFOAF.xsl',
       'template' => FALSE,
     ),
     'model_Person' => array(
@@ -110,6 +111,7 @@ function delftdora_islandora_xml_form_builder_form_associations() {
       'dsid' => 'SFOAF',
       'title_field' => array('name'),
       'transform' => 'sfoaf_to_dc.xsl',
+      'self_transform' => 'cleanup.SFOAF.xsl',
       'template' => FALSE,
     ),
     'model_Building' => array(
@@ -118,6 +120,7 @@ function delftdora_islandora_xml_form_builder_form_associations() {
       'dsid' => 'MODS',
       'title_field' => array('titleInfo', 'title'),
       'transform' => 'mods_to_dc.xsl',
+      'self_transform' => 'cleanup.MODS.xsl',
       'template' => FALSE,
     ),
   );
