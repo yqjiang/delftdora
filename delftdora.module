@@ -92,7 +92,7 @@ function delftdora_islandora_xml_form_builder_forms() {
 }
 
 /**
- * Implements hook_xml_form_builder_form_associations().
+ * Implements hook_islandora_xml_form_builder_form_associations().
  */
 function delftdora_islandora_xml_form_builder_form_associations() {
   return array(
