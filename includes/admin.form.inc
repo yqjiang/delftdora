@@ -71,7 +71,7 @@ function delft_admin($form, &$form_state) {
   for ($i = 1; $i <= $form_state['bm_count']; $i++) {
     $form['batch_modify'][$i] = array(
       '#type' => 'fieldset',
-      '#title' => t('Namespace @num', array('@num' => $i)),
+      '#title' => t('CModel/Batch Modify Config @num', array('@num' => $i)),
     );
     $form['batch_modify'][$i]['cmodel'] = array(
       '#type' => 'textfield',
