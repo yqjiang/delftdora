@@ -94,7 +94,7 @@ function delftdora_islandora_xml_form_builder_forms() {
 /**
  * Implements hook_xml_form_builder_form_associations().
  */
-function delftdora_xml_form_builder_form_associations() {
+function delftdora_islandora_xml_form_builder_form_associations() {
   return array(
     'model_Organization' => array(
       'content_model' => 'model:Organization',
