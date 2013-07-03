@@ -196,9 +196,12 @@ function delftdora_model_Building_islandora_object_ingested($object) {
 }
 
 /**
- * Implements hook_islandora_object_alter().
+ * Process object for Delft customizations.
+ *
+ * @param FedoraObject $object
+ *   The object to be modified with Delft custizations.
  */
-function delftdora_islandora_object_ingested($object) {
+function delftdora_process_object($object) {
   // Handle RELS-EXT replacement.
   $content_models = array();
   $rels = $object->relationships->get(FEDORA_MODEL_URI, 'hasModel');
@@ -224,9 +227,31 @@ function delftdora_islandora_object_ingested($object) {
     if (in_array($bm_model['cmodel'], $content_models)) {
       $db_object = new stdClass();
       $db_object->ingested_pid = $object->id;
-      $result = drupal_write_record('delftdora_ingested_pids', $db_object);
+
+      db_merge('delftdora_ingested_pids')
+        ->key(array('ingested_pid' => $object->id))
+        ->fields(array(
+          'processed' => NULL,
+        ))
+        ->execute();
       break;
     }
+  }
+}
+
+/**
+ * Implements hook_islandora_object_alter().
+ */
+function delftdora_islandora_object_ingested($object) {
+  delftdora_process_object($object);
+}
+
+/**
+ * Implements hook_islandora_datastream_alter().
+ */
+function delftdora_islandora_datastream_alter($object, $datastream, &$context) {
+  if ($context['action'] == 'modify' || $context['action'] == 'ingest') {
+    delftdora_process_object($object);
   }
 }
 
@@ -239,9 +264,10 @@ function delftdora_cron() {
     ->fields('d', array('ingested_pid'))
     ->condition('processed', NULL, 'IS')
     ->execute()
-    ->fetchAssoc();
+    ->fetchAllAssoc('ingested_pid');
 
   foreach ($pids_to_process as $pid) {
+    $pid = $pid->ingested_pid;
     $result = delftdora_batch_modify($pid);
     if ($result) {
       $num_deleted = db_delete('delftdora_ingested_pids')
