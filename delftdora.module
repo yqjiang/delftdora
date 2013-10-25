@@ -23,6 +23,65 @@ function delftdora_menu() {
 }
 
 /**
+ * Implements hook_theme().
+ */
+function delftdora_theme() {
+  return array(
+    'delftdora_facets_block' => array(
+      'file' => 'theme/theme.inc',
+      'variables' => array('solr' => NULL),
+    ),
+    'delftdora_facets_block_facet_field' => array(
+      'file' => 'theme/theme.inc',
+      'template' => 'theme/delftdora-facets-block-facet-field',
+      'variables' => array(
+        'solr' => NULL,
+        'field' => NULL,
+        'options' => array(),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function delftdora_block_info() {
+  return array(
+    'delftdora_facets' => array(
+      'info' => t('Islandora Facets'),
+      'cache' => DRUPAL_NO_CACHE,
+      'status' => 1,
+      'region' => 'sidebar_first',
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * @global IslandoraSolrQueryProcessor $_islandora_solr_queryclass
+ *   The IslandoraSolrQueryProcessor object which includes the current query
+ *   settings and the raw Solr results.
+ */
+function delftdora_block_view($block_name = '') {
+  global $_islandora_solr_queryclass;
+  $block = array();
+  switch ($block_name) {
+    case 'delftdora_facets':
+      $block['subject'] = NULL;
+      if (islandora_solr_results_page($_islandora_solr_queryclass) && user_access('search islandora solr')) {
+        $block['content'] = array(
+          '#theme' => 'delftdora_facets_block',
+          '#solr' => $_islandora_solr_queryclass,
+        );
+      }
+      break;
+  }
+  return $block;
+}
+
+/**
  * Implements hook_islandora_required_objects().
  */
 function delftdora_islandora_required_objects(IslandoraTuque $connection) {
