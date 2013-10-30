@@ -376,3 +376,29 @@ function delftdora_xml_form_builder_get_transforms() {
   closedir($dir);
   return $transforms;
 }
+
+/**
+ * Implements hook_menu_alter().
+ */
+function delftdora_menu_alter(&$items) {
+  $items['user']['page callback'] = 'delftdora_user_page';
+  $items['user']['file'] = 'includes/user.page.inc';
+  $items['user']['file path'] = drupal_get_path('module', 'delftdora');
+
+  $items['user/register']['type'] = MENU_CALLBACK;
+  $items['user/password']['type'] = MENU_CALLBACK;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function delftdora_form_user_login_alter(&$form, &$form_state) {
+  $form['actions']['submit']['#value'] = t('Sign in');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function delftdora_form_user_register_form_alter(&$form, &$form_state) {
+  $form['actions']['submit']['#value'] = t('Submit');
+}
