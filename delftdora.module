@@ -49,7 +49,7 @@ function delftdora_theme() {
 function delftdora_block_info() {
   return array(
     'delftdora_facets' => array(
-      'info' => t('Islandora Facets'),
+      'info' => t('Delftdora Facets'),
       'cache' => DRUPAL_NO_CACHE,
       'status' => 1,
       'region' => 'sidebar_first',
