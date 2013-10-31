@@ -1,0 +1,140 @@
+/**
+ * @file
+ * CSS file for displaying Solr results.
+ */
+div#filters h2 {
+  margin:18px 0 6px;
+}
+ol.filterlist {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  padding: 10px 0 0 0;
+  border-top: 2px solid #009100;
+}
+div.show-more {
+  cursor: pointer;
+}
+div.show-more:before {
+  content: "»";
+  margin-right: 7px;
+}
+div.show-more b {
+  text-decoration: underline;
+}
+ol.filterlist li {
+  margin: 1px 0 3px;
+  color: #888;
+  font-size: 11px;
+  list-style: none;
+}
+ol.filterlist li.selected a span {
+  background: url(../images/icons.png) -281px 1px no-repeat #fff
+}
+ol.filterlist li.selected a span:before {
+  display:none
+}
+ol.filterlist li.selected a span:after {
+  display:none
+}
+ol.filterlist li a {
+  position: relative;
+  padding-left: 24px;
+  font-size: 13px;
+  text-decoration: none;
+}
+ol.filterlist li a span {
+  position: absolute;
+  display: block;
+  width: 11px;
+  height: 11px;
+  left: 0;
+  top: 1px;
+  border: 1px solid #8e8f8f;
+  background-color: #f4f4f4;
+}
+ol.filterlist li a span:before {
+  content: " ";
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  left: 1px;
+  background: #aeb3b9;
+  background: -moz-linear-gradient(-45deg, #aeb3b9 0%, #e9e9ea 100%);
+  background: -webkit-gradient(linear, left top, right bottom, color-stop(0%, #aeb3b9), color-stop(100%, #e9e9ea));
+  background: -webkit-linear-gradient(-45deg, #aeb3b9 0%, #e9e9ea 100%);
+  background: -o-linear-gradient(-45deg, #aeb3b9 0%, #e9e9ea 100%);
+  background: -ms-linear-gradient(-45deg, #aeb3b9 0%, #e9e9ea 100%);
+  background: linear-gradient(135deg, #aeb3b9 0%, #e9e9ea 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#aeb3b9', endColorstr='#e9e9ea',GradientType=1 );
+  z-index: 1;
+}
+ol.filterlist li a span:after {
+  content: " ";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  bottom: 2px;
+  left: 2px;
+  background: #cbcfd5;
+  background: -moz-linear-gradient(-45deg, #cbcfd5 0%, #f6f6f6 100%);
+  background: -webkit-gradient(linear, left top, right bottom, color-stop(0%, #cbcfd5), color-stop(100%, #f6f6f6));
+  background: -webkit-linear-gradient(-45deg, #cbcfd5 0%, #f6f6f6 100%);
+  background: -o-linear-gradient(-45deg, #cbcfd5 0%, #f6f6f6 100%);
+  background: -ms-linear-gradient(-45deg, #cbcfd5 0%, #f6f6f6 100%);
+  background: linear-gradient(135deg, #cbcfd5 0%, #f6f6f6 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#cbcfd5', endColorstr='#f6f6f6',GradientType=1 );
+  z-index: 2;
+}
+ol.filterlist li a:hover span {
+    border-color:#747575
+}
+ol.filterlist li a:hover span:before {
+    background:#febf04;
+    background:-moz-linear-gradient(-45deg, #febf04 0%, #ffd65e 100%);
+    background:-webkit-gradient(linear, left top, right bottom, color-stop(0%, #febf04), color-stop(100%, #ffd65e));
+    background:-webkit-linear-gradient(-45deg, #febf04 0%, #ffd65e 100%);
+    background:-o-linear-gradient(-45deg, #febf04 0%, #ffd65e 100%);
+    background:-ms-linear-gradient(-45deg, #febf04 0%, #ffd65e 100%);
+    background:linear-gradient(135deg, #febf04 0%, #ffd65e 100%);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#febf04', endColorstr='#ffd65e',GradientType=1 )
+}
+ol.filterlist li a:hover span:after {
+    background:#ffe69c;
+    background:-moz-linear-gradient(-45deg, #ffe69c 0%, #fffdf7 100%);
+    background:-webkit-gradient(linear, left top, right bottom, color-stop(0%, #ffe69c), color-stop(100%, #fffdf7));
+    background:-webkit-linear-gradient(-45deg, #ffe69c 0%, #fffdf7 100%);
+    background:-o-linear-gradient(-45deg, #ffe69c 0%, #fffdf7 100%);
+    background:-ms-linear-gradient(-45deg, #ffe69c 0%, #fffdf7 100%);
+    background:linear-gradient(135deg, #ffe69c 0%, #fffdf7 100%);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='lighten( #febf04, 30% )', endColorstr='lighten( #ffd65e, 30% )',GradientType=1 )
+}
+/**
+ * Move the following to the theme layer? When it exists.
+ * Styles are here for a good time, not a long time.
+ */
+ol.filterlist li a {
+  color: #009100;
+  text-decoration: underline;
+}
+
+ol.filterlist li a:visited {
+  color: #009100;
+}
+
+#filters h2 {
+  margin: 18px 0 6px;
+  font-family: 'Ropa Sans';
+  font-weight: 400;
+  line-height: 1.3em;
+  text-transform: uppercase;
+  border-bottom: none;
+  display: block;
+  font-size: 1.5em;
+  -webkit-margin-before: 0.83em;
+  -webkit-margin-after: 0.83em;
+  -webkit-margin-start: 0px;
+  -webkit-margin-end: 0px;
+  font-weight: bold;
+}
