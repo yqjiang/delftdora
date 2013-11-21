@@ -3,6 +3,7 @@ description = Customizations for the Delft University of Technology.
 dependencies[] = islandora
 dependencies[] = islandora_basic_image
 dependencies[] = islandora_solr
+scripts[] = js/addthis.js
 package = Islandora
 version = 7.x-dev
 core = 7.x
