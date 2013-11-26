@@ -1,0 +1,61 @@
+/* 
+    Document   : delftdora.findonmap
+    Created on : 26-Nov-2013, 10:57:59 AM
+    Author     : yqjiang
+    Description:
+        Purpose of the stylesheet follows.
+*/
+div#block-delftdora-delftdora-find-on-map {
+    float: left;
+    width: 260px;
+    padding: 0px;
+    background-color: transparent;
+}
+a#findonmap {
+    float: left;
+    min-width: 80%;
+    position: relative;
+    display: inline-block;
+    min-height: 51px;
+    margin-top: 0px;
+    padding: 21px 20px 18px 20px;
+    text-align: center;
+    vertical-align: bottom;
+    text-decoration: none;
+    border: 5px solid #dadada;
+    background-color: #fff;
+    -webkit-transition: all 0.2s;
+    -moz-transition: all 0.2s;
+    -o-transition: all 0.2s;
+    -ms-transition: all 0.2s;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+a#findonmap span.icon {
+    position: relative;
+    display: inline-block;
+    height: 47px;
+    width: 47px;
+    background: url(../images/icons.png) -136px -1px no-repeat;
+    -webkit-opacity: 0.75;
+    -moz-opacity: 0.75;
+    -o-opacity: 0.75;
+    -ms-opacity: 0.75;
+    opacity: 0.75;
+    -webkit-transition: all 0.2s;
+    -moz-transition: all 0.2s;
+    -o-transition: all 0.2s;
+    -ms-transition: all 0.2s;
+    transition: all 0.2s;
+}
+
+a#findonmap em {
+    display: inline-block;
+    margin: 14px 0 0 10px;
+    color: #717171;
+    font-family: 'Ropa Sans';
+    font-size: 19px;
+    font-style: italic;
+    vertical-align: top;
+}

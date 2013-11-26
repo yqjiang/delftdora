@@ -1,0 +1,189 @@
+/* 
+    Document   : delftdora.frontsearch
+    Created on : 26-Nov-2013, 1:44:21 AM
+    Author     : yqjiang
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+@media screen and (min-width: 1024px){
+    body div#searchboxwrapper {
+        width: 475px;
+        top: -308px;
+        left: 426px;
+        padding: 20px 30px;
+    }
+}
+
+
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+    body div#searchboxwrapper {
+        width: 260px;
+        top: -308px;
+        left: 426px;
+        padding: 20px 30px;
+    }
+}
+
+body div#searchboxwrapper {
+    padding: 20px 6% 20px;
+    border-bottom: 3px solid #009100;
+    background-color: #fff;
+}
+
+body div.browsecats {
+    margin: 20px 0 0 0;
+}
+
+body div.browsecats ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    overflow: hidden;
+    zoom: 1;
+    display: block;
+}
+
+body div.browsecats ul li {
+    display: list-item;
+    text-align: -webkit-match-parent;
+    float: left;
+}
+
+body div.browsecats ul li a {
+    display: block;
+    position: relative;
+    width: 79px;
+    height: 80px;
+    margin-bottom: 15px;
+    color: #818181;
+    font-size: 14px;
+    font-family: 'Ropa Sans', Arial;
+    font-style: italic;
+    line-height: 1em;
+    text-decoration: none;
+    text-align: center;
+    background-color: #fff;
+}
+
+div#searchbox {
+    margin: 10px 0 25px;
+    overflow: hidden;
+    zoom: 1;
+}
+
+a.adv_search {
+    color: #4d4d4d;
+    font-family: 'Ropa Sans', Arial;
+    font-style: italic;
+    font-size: 14px;
+}
+
+div#searchbox input#edit-islandora-simple-search-query {
+    height: 41px;
+    width: 400px;
+    padding: 4px 15px;
+    font-family: "Ropa Sans", Arial, Helvetica, sans-serif;
+    border-top: 1px solid #494949;
+    border-right: 1px solid #6c6c6c;
+    border-bottom: 1px solid #6c6c6c;
+    border-left: 1px solid #494949;
+    -webkit-border-radius: 4px 0px 0px 4px;
+    -moz-border-radius: 4px 0px 0px 4px;
+    -o-border-radius: 4px 0px 0px 4px;
+    -ms-border-radius: 4px 0px 0px 4px;
+    border-radius: 4px 0px 0px 4px;
+    -webkit-boxshadow: 0px 1px 0px 0px #dbdbdb;
+    -moz-boxshadow: 0px 1px 0px 0px #dbdbdb;
+    -o-boxshadow: 0px 1px 0px 0px #dbdbdb;
+    -ms-boxshadow: 0px 1px 0px 0px #dbdbdb;
+    boxshadow: 0px 1px 0px 0px #dbdbdb;
+    width: 69%;
+    font-size: 17px;
+    background-color: #fafafa;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 22px;
+}
+
+div#searchbox input#edit-submit {
+    color: #000;
+    font-size: 0;
+    height: 41px;
+    width: 42px;
+    margin: 0 0 0 -3px;
+    vertical-align: top;
+    border: none;
+    -webkit-border-radius: 0px 2px 2px 0px;
+    -moz-border-radius: 0px 2px 2px 0px;
+    -o-border-radius: 0px 2px 2px 0px;
+    -ms-border-radius: 0px 2px 2px 0px;
+    border-radius: 0px 2px 2px 0px;
+    background-color: #050505;
+    cursor: pointer;
+    -webkit-transition: background-color 0.2s;
+    -moz-transition: background-color 0.2s;
+    -o-transition: background-color 0.2s;
+    -ms-transition: background-color 0.2s;
+    transition: background-color 0.2s;
+}
+
+div#searchbox input#edit-submit:after {
+    content: " ";
+    position: absolute;
+    left: 11px;
+    top: 9px;
+    height: 25px;
+    width: 21px;
+    margin: 0;
+    background: url(../images/icons.png) -187px -1px no-repeat;
+    z-index: 0;
+}
+
+div#searchbox button#edit-submit:hover {
+background-color: #383838;
+}
+
+body div.browsecats ul li a span.icon {
+    display: block;
+    position: relative;
+    width: 41px;
+    height: 40px;
+    margin: 0 auto 10px;
+    background: url(../images/icons.png) bottom right no-repeat;
+    background-position: -187px -1px;
+    -webkit-opacity: 0.75;
+    -moz-opacity: 0.75;
+    -o-opacity: 0.75;
+    -ms-opacity: 0.75;
+    opacity: 0.75;
+    -webkit-transition: all 0.2s;
+    -moz-transition: all 0.2s;
+    -o-transition: all 0.2s;
+    -ms-transition: all 0.2s;
+    transition: all 0.2s;
+}
+
+body div.browsecats ul li.buildings span.icon {
+    background-position: 0px 0px;
+}
+
+body div.browsecats ul li.maps span.icon {
+    background-position: 0px -42px;
+}
+
+body div.browsecats ul li.documents span.icon {
+    background-position: 0px -82px;
+}
+
+body div.browsecats ul li.images span.icon {
+    background-position: 0px -123px;
+}
+
+body div.browsecats ul li.persons span.icon {
+    background-position: 0px -164px;
+}
+
+body div.browsecats ul li.organisations span.icon {
+    background-position: 0px -205px;
+}

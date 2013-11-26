@@ -30,6 +30,39 @@ function theme_delftdora_facets_block(array &$variables) {
   }
 }
 
+function theme_delftdora_front_search_block(array &$variables) {
+  $path = drupal_get_path('module', 'delftdora');
+  drupal_add_css("$path/css/delftdora.frontsearch.css", array('type' => 'file'));
+  module_load_include('inc', 'islandora_solr','includes/blocks');
+  $search = drupal_get_form('islandora_solr_simple_search_form');
+  $html = '<div id="searchboxwrapper"><h2>Search</h2>';
+  $html .= '<div id="searchbox" class="">';
+  $html .= drupal_render($search);
+  $html .= '</div>';
+  $html .= '<h2>Browse by category</h2>
+             <div class="browsecats">
+               <ul>
+                 <li class="buildings"><a href=""><span class="icon"></span> Buildings &amp; Town plans</a></li>
+                 <li class="maps"><a href=""><span class="icon"></span> Maps</a></li>
+                 <li class="documents"><a href=""><span class="icon"></span> Documents</a></li>
+                 <li class="images"><a href=""><span class="icon"></span> Images</a></li>
+                 <li class="persons"><a href=""><span class="icon"></span> Persons</a></li>
+                 <li class="organisations"><a href=""><span class="icon"></span> Organisations</a></li>
+               </ul>
+             </div>
+           </div>';
+  return $html;
+}
+
+function theme_delftdora_find_on_map_block(array &$variables){
+  $path = drupal_get_path('module', 'delftdora');
+  drupal_add_css("$path/css/delftdora.findonmap.css", array('type' => 'file'));
+  $html = '<a href="" id="findonmap" title="Find on map">
+             <span class="icon"></span><em>Find on map</em>
+           </a>';
+  return $html;
+}
+
 /**
  * Implements hook_preprocess_theme().
  */
