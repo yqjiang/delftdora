@@ -30,10 +30,13 @@ function theme_delftdora_facets_block(array &$variables) {
   }
 }
 
+/**
+ * Implements theme_hook().
+ */
 function theme_delftdora_front_search_block(array &$variables) {
   $path = drupal_get_path('module', 'delftdora');
   drupal_add_css("$path/css/delftdora.frontsearch.css", array('type' => 'file'));
-  module_load_include('inc', 'islandora_solr','includes/blocks');
+  module_load_include('inc', 'islandora_solr', 'includes/blocks');
   $search = drupal_get_form('islandora_solr_simple_search_form');
   $html = '<div id="searchboxwrapper"><h2>Search</h2>';
   $html .= '<div id="searchbox" class="">';
@@ -54,7 +57,10 @@ function theme_delftdora_front_search_block(array &$variables) {
   return $html;
 }
 
-function theme_delftdora_find_on_map_block(array &$variables){
+/**
+ * Implements theme_hook().
+ */
+function theme_delftdora_find_on_map_block(array &$variables) {
   $path = drupal_get_path('module', 'delftdora');
   drupal_add_css("$path/css/delftdora.findonmap.css", array('type' => 'file'));
   $html = '<a href="" id="findonmap" title="Find on map">

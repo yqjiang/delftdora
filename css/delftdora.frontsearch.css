@@ -106,7 +106,7 @@ div#searchbox input#edit-islandora-simple-search-query {
     line-height: 22px;
 }
 
-div#searchbox input#edit-submit {
+div#searchbox input.form-submit {
     color: #000;
     font-size: 0;
     height: 41px;
@@ -128,7 +128,7 @@ div#searchbox input#edit-submit {
     transition: background-color 0.2s;
 }
 
-div#searchbox input#edit-submit:after {
+div#searchbox input.form-submit:after {
     content: " ";
     position: absolute;
     left: 11px;

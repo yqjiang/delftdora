@@ -9,17 +9,22 @@
  * Implements hook_menu().
  */
 function delftdora_menu() {
-  return array(
-    'admin/islandora/delftdora' => array(
-      'title' => 'Delft Customizations',
-      'description' => 'Configure behviours specific to Delft.',
-      'page callback' => 'drupal_get_form',
-      'access arguments' => array('administer site configuration'),
-      'page arguments' => array('delft_admin'),
-      'file' => 'includes/admin.form.inc',
-      'type' => MENU_NORMAL_ITEM,
-    ),
+  $item = array();
+  $item['admin/islandora/delftdora'] = array(
+    'title' => 'Delft Customizations',
+    'description' => 'Configure behviours specific to Delft.',
+    'page callback' => 'drupal_get_form',
+    'access arguments' => array('administer site configuration'),
+    'page arguments' => array('delft_admin'),
+    'file' => 'includes/admin.form.inc',
+    'type' => MENU_NORMAL_ITEM,
   );
+  $item['delftdora/map-view'] = array(
+    'title' => 'Find on map',
+    'description' => 'Lorem ipsum dolor.',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $item;
 }
 
 /**
@@ -55,47 +60,54 @@ function delftdora_theme() {
  * Implements hook_block_info().
  */
 function delftdora_block_info() {
-  return array(
-    'delftdora_facets' => array(
-      'info' => t('Delftdora Facets'),
-      'cache' => DRUPAL_NO_CACHE,
-      'status' => 1,
-      'region' => 'sidebar_first',
-    ),
-    'delftdora_front_search' => array(
-      'info' => t('Search (Deleft front page)'),
-      'status' => 1,
-      'visibility' => BLOCK_VISIBILITY_LISTED,
-      'region' => 'content',
-      'pages' => '<front>',
-    ),
-    'delftdora_find_on_map' => array(
-      'info' => t('Find on Map'),
-      'status' => 1,
-      'visibility' => BLOCK_VISIBILITY_NOTLISTED,
-      'region' => 'content',
-    ),
-    
-
+  $blocks['delftdora_facets'] = array(
+    'info' => t('Delftdora Facets'),
+    'cache' => DRUPAL_NO_CACHE,
+    'status' => 1,
+    'region' => 'sidebar_first',
   );
+  $blocks['delftdora_front_search'] = array(
+    'info' => t('Search (Deleft front page)'),
+    'status' => 1,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'region' => 'content',
+    'pages' => '<front>',
+  );
+  $blocks['delftdora_find_on_map'] = array(
+    'info' => t('Find on Map'),
+    'status' => 1,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'region' => 'content',
+    'pages' => '<front>',
+  );
+  $blocks['delftdora_islandora_map_view'] = array(
+    'info' => t('Islandora Map'),
+    'status' => 1,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'region' => 'content',
+    'pages' => 'delftdora/map-view',
+  );
+  return $blocks;
 }
 
+/**
+ * Implements hook_block_info_alter().
+ */
 function delftdora_block_info_alter(&$blocks, $theme, $code_blocks) {
   switch ($theme) {
     case 'dtu_theme':
-      if(isset($blocks['locale']['language'])) {
+      if (isset($blocks['locale']['language'])) {
         $blocks['locale']['language']['region'] = 'navigation';
         $blocks['locale']['language']['status'] = 1;
       }
       break;
   }
-  dsm($theme);
-  dsm($blocks);
 }
 
 function delftdora_block_list_alter(&$blocks) {
   dsm($blocks);
 }
+
 /**
  * Implements hook_block_view().
  *
@@ -116,18 +128,28 @@ function delftdora_block_view($block_name = '') {
         );
       }
       break;
-      
+
     case 'delftdora_front_search':
       $block['subject'] = NULL;
       $block['content'] = array(
         '#theme' => 'delftdora_front_search_block',
       );
       break;
-    
+
     case 'delftdora_find_on_map':
       $block['subject'] = 'Find on Map';
       $block['content'] = array(
         '#theme' => 'delftdora_find_on_map_block',
+      );
+      break;
+
+    case 'delftdora_islandora_map_view':
+      drupal_load('module', 'islandora_mapping');
+      module_load_include('inc', 'delftdora', 'includes/utilities');
+      $block['subject'] = NULL;
+      $block['content'] = array(
+        '#theme' => 'islandora_mapping_map_multi_item',
+        '#locations' => delftdora_get_building_locations(),
       );
       break;
   }
@@ -341,11 +363,11 @@ function delftdora_process_object($object) {
       $db_object->ingested_pid = $object->id;
 
       db_merge('delftdora_ingested_pids')
-        ->key(array('ingested_pid' => $object->id))
-        ->fields(array(
-          'processed' => NULL,
-        ))
-        ->execute();
+          ->key(array('ingested_pid' => $object->id))
+          ->fields(array(
+            'processed' => NULL,
+          ))
+          ->execute();
       break;
     }
   }
@@ -373,18 +395,18 @@ function delftdora_islandora_datastream_alter($object, $datastream, &$context) {
 function delftdora_cron() {
   // Gets all unprocessed pids.
   $pids_to_process = db_select('delftdora_ingested_pids', 'd')
-    ->fields('d', array('ingested_pid'))
-    ->condition('processed', NULL, 'IS')
-    ->execute()
-    ->fetchAllAssoc('ingested_pid');
+      ->fields('d', array('ingested_pid'))
+      ->condition('processed', NULL, 'IS')
+      ->execute()
+      ->fetchAllAssoc('ingested_pid');
 
   foreach ($pids_to_process as $pid) {
     $pid = $pid->ingested_pid;
     $result = delftdora_batch_modify($pid);
     if ($result) {
       $num_deleted = db_delete('delftdora_ingested_pids')
-        ->condition('ingested_pid', $pid)
-        ->execute();
+          ->condition('ingested_pid', $pid)
+          ->execute();
     }
   }
 }
@@ -436,8 +458,7 @@ function delftdora_batch_modify($pid) {
         file_delete($disseminator_file);
         if (empty($output)) {
           $return = FALSE;
-          watchdog('delft', 'Error running batchModify for @pid with @disseminator',
-            array('@pid' => $pid, '@disseminator' => $bm_model['sdef'] . '/' . $bm_model['method'])
+          watchdog('delft', 'Error running batchModify for @pid with @disseminator', array('@pid' => $pid, '@disseminator' => $bm_model['sdef'] . '/' . $bm_model['method'])
           );
         }
       }
