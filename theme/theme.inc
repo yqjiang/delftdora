@@ -160,3 +160,17 @@ function delftdora_facets_block_facet_field_remove_facet_url($solr, $filter) {
   $path = ISLANDORA_SOLR_SEARCH_PATH . '/' . trim(islandora_solr_replace_slashes($solr->solrQuery));
   return url($path, array('query' => $params));
 }
+
+
+/**
+ * Implements theme_hook().
+ */
+function theme_delftdora_mobile_about_this_site(array &$variables) {
+  return '<h2>Explore European colonial architecture after 1850</h2>
+    <a href="about">About this site</a>';
+}
+
+function theme_delftdora_islandora_search_block(array &$variables) {
+  $form = drupal_get_form('islandora_solr_simple_search_form');
+  return drupal_render($form);
+}

@@ -5,6 +5,7 @@ dependencies[] = islandora_basic_image
 dependencies[] = islandora_solr
 dependencies[] = views
 dependencies[] = features
+dependencies[] = block_class
 scripts[] = js/addthis.js
 files[] = delftdora.views_default.inc
 package = Islandora
