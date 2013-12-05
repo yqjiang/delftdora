@@ -174,3 +174,7 @@ function theme_delftdora_islandora_search_block(array &$variables) {
   $form = drupal_get_form('islandora_solr_simple_search_form');
   return drupal_render($form);
 }
+
+function theme_delftdora_search_page_find_map(array &$variables) {
+  return '<a id="findonmap" title="Find on map" href=""><span class="icon"></span><em> Find on map</em></a>';
+}

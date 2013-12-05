@@ -52,6 +52,11 @@ function delftdora_theme() {
     'file' => 'theme/theme.inc',
     'variables' => array(),
   );
+
+  $items['delftdora_search_page_find_map'] = array(
+    'file' => 'theme/theme.inc',
+    'variables' => array(),
+  );
   return $items;
 }
 
@@ -81,6 +86,15 @@ function delftdora_block_info() {
     'region' => 'content',
     'pages' => "islandora/search/*\nislandora/search",
     'css_class' => 'simple-search',
+  );
+
+  $items['delftdora_search_page_find_map'] = array(
+    'info' => t('Search page find on map'),
+    'status' => 1,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'region' => 'content',
+    'pages' => "islandora/search/*\nislandora/search",
+    'css_class' => 'find-map',
   );
   return $items;
 }
@@ -124,10 +138,18 @@ function delftdora_block_view($block_name = '') {
         '#theme' => 'delftdora_mobile_about_this_site',
       );
       break;
+    
     case 'delftdora_islandora_search_block':
       $block['subject'] = '';
        $block['content'] = array(
         '#theme' => 'delftdora_islandora_search_block',
+      );
+      break;
+
+    case 'delftdora_search_page_find_map':
+      $block['subject'] = '';
+      $block['content'] = array(
+        '#theme' => 'delftdora_search_page_find_map',
       );
       break;
   }
