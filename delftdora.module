@@ -27,11 +27,14 @@ function delftdora_menu() {
  */
 function delftdora_theme() {
   $items = array();
-  
+  $items['delftdora_language_nev'] = array(
+    'file' => 'theme/theme.inc',
+    'variables' => array(),
+  );
   $items['delftdora_facets_block'] = array(
     'file' => 'theme/theme.inc',
     'variables' => array('solr' => NULL),
-    );
+  );
   
   $items['delftdora_facets_block_facet_field'] = array(
     'file' => 'theme/theme.inc',
@@ -53,10 +56,21 @@ function delftdora_theme() {
     'variables' => array(),
   );
 
-  $items['delftdora_search_page_find_map'] = array(
+  $items['delftdora_find_map'] = array(
     'file' => 'theme/theme.inc',
     'variables' => array(),
   );
+
+  $items['delftdora_browse_catelogry'] = array(
+    'file' => 'theme/theme.inc',
+    'variables' => array(),
+  );
+
+  $items['delftdora_share_options'] = array(
+    'file' => 'theme/theme.inc',
+    'variables' => array(),
+  );
+
   return $items;
 }
 
@@ -65,6 +79,13 @@ function delftdora_theme() {
  */
 function delftdora_block_info() {
   $items = array();
+  $items['delftdora_language_nev'] = array(
+    'info' => t('Language navigation'),
+    'status' => 1,
+    'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+    'region' => 'navigation',
+    'pages' => '',
+  );
   $items['delftdora_facets'] = array(
     'info' => t('Delftdora Facets'),
     'cache' => DRUPAL_NO_CACHE,
@@ -77,6 +98,7 @@ function delftdora_block_info() {
     'visibility' => BLOCK_VISIBILITY_LISTED,
     'region' => 'content',
     'pages' => '',
+    'weight' => -60,
     'css_class' => 'mobile-about',
   );
   $items['delftdora_islandora_search_block'] = array(
@@ -84,7 +106,8 @@ function delftdora_block_info() {
     'status' => 1,
     'visibility' => BLOCK_VISIBILITY_LISTED,
     'region' => 'content',
-    'pages' => "islandora/search/*\nislandora/search",
+    'weight' => -50,
+    'pages' => "islandora/search*",
     'css_class' => 'simple-search',
   );
 
@@ -93,24 +116,51 @@ function delftdora_block_info() {
     'status' => 1,
     'visibility' => BLOCK_VISIBILITY_LISTED,
     'region' => 'content',
-    'pages' => "islandora/search/*\nislandora/search",
+    'weight' => -45,
+    'pages' => "islandora/search*",
     'css_class' => 'find-map',
+  );
+  
+  $items['delftdora_browse_catelogry'] = array(
+    'info' => t('Browse by my catelogry menu'),
+    'status' => 1,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'region' => 'content',
+    'weight' => -40,
+    'pages' => "<front>",
+    'css_class' => 'browse-menu',
+  );
+  
+  $items['delftdora_front_page_find_map'] = array(
+    'info' => t('Front page find on map'),
+    'status' => 1,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'region' => 'content',
+    'weight' => -35,
+    'pages' => "<front>",
+    'css_class' => 'find-map',
+  );
+  
+  $items['delftdora_share_options'] = array(
+    'info' => t('Share options'),
+    'status' => 1,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'region' => 'content',
+    'weight' => -30,
+    'pages' => "islandora/object*",
+    'css_class' => 'shareoptions',
   );
   return $items;
 }
 
 function delftdora_block_info_alter(&$blocks, $theme, $code_blocks) {
-
   $blocks['islandora_solr']['simple']['region']='content';
   $blocks['islandora_solr']['simple']['visibility']=BLOCK_VISIBILITY_LISTED;
   $blocks['islandora_solr']['simple']['pages']='<front>';
   $blocks['islandora_solr']['simple']['status']=1;
-  dsm($blocks);
+  $blocks['islandora_solr']['simple']['weight'] = -55;
 }
 
-function delftdora_block_list_alter(&$blocks) {
-  dsm($blocks);
-}
 /**
  * Implements hook_block_view().
  *
@@ -122,6 +172,12 @@ function delftdora_block_view($block_name = '') {
   global $_islandora_solr_queryclass;
   $block = array();
   switch ($block_name) {
+    case 'delftdora_language_nev':
+      $block['subject'] = '';
+      $block['content'] = array(
+        '#theme' => 'delftdora_language_nev',
+      );
+      break;
     case 'delftdora_facets':
       $block['subject'] = NULL;
       if (islandora_solr_results_page($_islandora_solr_queryclass) && user_access('search islandora solr')) {
@@ -131,17 +187,17 @@ function delftdora_block_view($block_name = '') {
         );
       }
       break;
-      
+
     case 'delftdora_mobile_about_this_site':
       $block['subject'] = 'Mobile About this site';
-       $block['content'] = array(
+      $block['content'] = array(
         '#theme' => 'delftdora_mobile_about_this_site',
       );
       break;
-    
+
     case 'delftdora_islandora_search_block':
       $block['subject'] = '';
-       $block['content'] = array(
+      $block['content'] = array(
         '#theme' => 'delftdora_islandora_search_block',
       );
       break;
@@ -149,9 +205,31 @@ function delftdora_block_view($block_name = '') {
     case 'delftdora_search_page_find_map':
       $block['subject'] = '';
       $block['content'] = array(
-        '#theme' => 'delftdora_search_page_find_map',
+        '#theme' => 'delftdora_find_map',
       );
       break;
+
+    case 'delftdora_browse_catelogry':
+      $block['subject'] = '';
+      $block['content'] = array(
+        '#theme' => 'delftdora_browse_catelogry',
+      );
+      break;
+    
+     case 'delftdora_front_page_find_map':
+      $block['subject'] = 'Find on map';
+      $block['content'] = array(
+        '#theme' => 'delftdora_find_map',
+      );
+      break;
+    
+     case 'delftdora_share_options':
+      $block['subject'] = '';
+      $block['content'] = array(
+        '#theme' => 'delftdora_share_options',
+      );
+      break;
+    
   }
   return $block;
 }

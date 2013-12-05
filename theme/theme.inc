@@ -175,6 +175,43 @@ function theme_delftdora_islandora_search_block(array &$variables) {
   return drupal_render($form);
 }
 
-function theme_delftdora_search_page_find_map(array &$variables) {
+function theme_delftdora_find_map(array &$variables) {
   return '<a id="findonmap" title="Find on map" href=""><span class="icon"></span><em> Find on map</em></a>';
+}
+
+function theme_delftdora_browse_catelogry(array &$variables) {
+  $html = '<div class="browsecats">
+    <ul>
+    <li class="buildings"><a href=""><span class="icon"></span> Buildings & Town plans</a></li>
+    <li class="maps"><a href=""><span class="icon"></span> Maps</a></li>
+    <li class="documents"><a href=""><span class="icon"></span> Documents</a></li>
+    <li class="images"><a href=""><span class="icon"></span> Images</a></li>
+    <li class="persons"><a href=""><span class="icon"></span> Persons</a></li>
+    <li class="organisations"><a href=""><span class="icon"></span> Organisations</a></li>
+    </ul>
+    </div>';
+  return $html;
+}
+
+function theme_delftdora_language_nev(array &$variables) {
+  $html = '<div id="langnavigation">
+    <span class="openclose" id="langnav"><img src="/sites/all/themes/dtu_theme/images/lang/nl_NL.png" alt="Current language: Nederlands"></span>
+    <ul>
+    <li><a href=""><img src="/sites/all/themes/dtu_theme/images/lang/nl_NL.png" alt="Nederlands"> <span>NL</span> <em>Nederlands</em></a></li>
+    <li><a href=""><img src="/sites/all/themes/dtu_theme/images/lang/en_US.png" alt="English"> <span>EN</span> <em>English</em></a></li>
+    <li><a href=""><img src="/sites/all/themes/dtu_theme/images/lang/de_DE.png" alt="Deutsch"> <span>DE</span> <em>Deutsch</em></a></li>
+    <li><a href=""><img src="/sites/all/themes/dtu_theme/images/lang/es_ES.png" alt="Espanol"> <span>ES</span> <em>Espanol</em></a></li>
+    </ul>
+    </div>';
+  return $html;
+}
+
+function theme_delftdora_share_options(array &$variables) {
+  $html = '<ul>
+    <li class="share"><a href=""><span class="icon"></span> Share</a></li>
+    <li class="save"><a href=""><span class="icon"></span> Save to list</a></li>
+    <li class="export"><a href=""><span class="icon"></span> Export</a></li>
+    <li class="cite"><a href=""><span class="icon"></span> Cite</a></li>
+    </ul>';
+  return $html;
 }
