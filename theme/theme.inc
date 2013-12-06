@@ -37,10 +37,10 @@ function delftdora_preprocess_delftdora_facets_block_facet_field(array &$variabl
   drupal_add_js(drupal_get_path('module', 'delftdora') . '/js/delftdora_solr.js', 'file');
   $variables['display_limit'] = variable_get('islandora_solr_facet_soft_limit', '10');
   drupal_add_js(array(
-      'delftdoraSolr' => array(
-        'displayLimit' => $variables['display_limit'],
-      ),
-    ), 'setting');
+    'delftdoraSolr' => array(
+      'displayLimit' => $variables['display_limit'],
+    ),
+      ), 'setting');
   $solr = $variables['solr'];
   $field = $variables['field'];
   $num_found = $solr->islandoraSolrResult['response']['numFound'];
@@ -104,8 +104,8 @@ function delftdora_facets_block_facet_field_option($solr, $field, $label, $count
   $filter = $field . ':"' . $label . '"';
   $selected = delftdora_facets_block_facet_field_selected($solr, $filter);
   $url = $selected ?
-    delftdora_facets_block_facet_field_remove_facet_url($solr, $filter) :
-    delftdora_facets_block_facet_field_add_facet_url($solr, $filter);
+      delftdora_facets_block_facet_field_remove_facet_url($solr, $filter) :
+      delftdora_facets_block_facet_field_add_facet_url($solr, $filter);
   return array(
     'url' => $url,
     'selected' => $selected,
@@ -161,7 +161,6 @@ function delftdora_facets_block_facet_field_remove_facet_url($solr, $filter) {
   return url($path, array('query' => $params));
 }
 
-
 /**
  * Implements theme_hook().
  */
@@ -170,15 +169,24 @@ function theme_delftdora_mobile_about_this_site(array &$variables) {
     <a href="about">About this site</a>';
 }
 
+/**
+ * Implements theme_hook().
+ */
 function theme_delftdora_islandora_search_block(array &$variables) {
   $form = drupal_get_form('islandora_solr_simple_search_form');
   return drupal_render($form);
 }
 
+/**
+ * Implements theme_hook().
+ */
 function theme_delftdora_find_map(array &$variables) {
   return '<a id="findonmap" title="Find on map" href=""><span class="icon"></span><em> Find on map</em></a>';
 }
 
+/**
+ * Implements theme_hook().
+ */
 function theme_delftdora_browse_catelogry(array &$variables) {
   $html = '<div class="browsecats">
     <ul>
@@ -193,25 +201,98 @@ function theme_delftdora_browse_catelogry(array &$variables) {
   return $html;
 }
 
+/**
+ * Implements theme_hook().
+ */
 function theme_delftdora_language_nev(array &$variables) {
+  $theme_path = drupal_get_path('theme', 'dtu_theme');
+  $languages = array();
+  $languages[] = array(
+    'code' => 'nl',
+    'alt' => 'Nederlands',
+    'image' => 'nl_NL.png',
+    'span' => 'NL',
+  );
+
+  $languages[] = array(
+    'code' => 'en',
+    'alt' => 'English',
+    'image' => 'en_US.png',
+    'span' => 'EN',
+  );
+
+  $languages[] = array(
+    'code' => 'de',
+    'alt' => 'Deutsch',
+    'image' => 'de_DE.png',
+    'span' => 'EN',
+  );
+  $languages[] = array(
+    'code' => 'es',
+    'alt' => 'Espanol',
+    'image' => 'es_ES.png',
+    'span' => 'ES',
+  );
+
   $html = '<div id="langnavigation">
-    <span class="openclose" id="langnav"><img src="/sites/all/themes/dtu_theme/images/lang/nl_NL.png" alt="Current language: Nederlands"></span>
-    <ul>
-    <li><a href=""><img src="/sites/all/themes/dtu_theme/images/lang/nl_NL.png" alt="Nederlands"> <span>NL</span> <em>Nederlands</em></a></li>
-    <li><a href=""><img src="/sites/all/themes/dtu_theme/images/lang/en_US.png" alt="English"> <span>EN</span> <em>English</em></a></li>
-    <li><a href=""><img src="/sites/all/themes/dtu_theme/images/lang/de_DE.png" alt="Deutsch"> <span>DE</span> <em>Deutsch</em></a></li>
-    <li><a href=""><img src="/sites/all/themes/dtu_theme/images/lang/es_ES.png" alt="Espanol"> <span>ES</span> <em>Espanol</em></a></li>
-    </ul>
-    </div>';
+    <span class="openclose" id="langnav">
+    <img src="' . $theme_path . '/images/lang/' . $languages[0]['image'] . '" alt="Current language: ' . $languages[0]['span'] . '">
+    </span>
+    <ul>';
+  foreach ($languages as $language) {
+    global $base_url;
+    $request = request_path();
+    $i18n_code = i18n_langcode();
+    if (strpos($request, $i18n_code)) {
+      $request = str_replace($i18n_code, $language['code'], $request);
+    }
+    else {
+      $code = $language['code'];
+      $request = "$code/$request";
+    }
+    $path = "$base_url/$request";
+    $html .= '<li>
+      <a href="' . $path . '">
+        <img src="' . $theme_path . '/images/lang/' . $language['image'] . '" alt="' . $language['alt'] . '">
+        <span>' . $language['span'] . '</span>
+        <em>' . $language['span'] . '</em>
+      </a></li>';
+  }
+  $html .= '</ul></div>';
   return $html;
 }
 
+/**
+ * Implements theme_hook().
+ */
 function theme_delftdora_share_options(array &$variables) {
-  $html = '<ul>
-    <li class="share"><a href=""><span class="icon"></span> Share</a></li>
-    <li class="save"><a href=""><span class="icon"></span> Save to list</a></li>
-    <li class="export"><a href=""><span class="icon"></span> Export</a></li>
-    <li class="cite"><a href=""><span class="icon"></span> Cite</a></li>
-    </ul>';
+  $object = $variables['object'];
+  $html = NULL;
+  if ($object) {
+    if (in_array("model:Building", $object->models) || in_array("model:Organization", $object->models) || in_array("model:Person", $object->models)) {
+      $html = '<ul>
+        <li class="share"><a href=""><span class="icon"></span> Share</a></li>
+        <li class="save"><a href=""><span class="icon"></span> Save to list</a></li>
+        <li class="export"><a href=""><span class="icon"></span> Export</a></li>
+        <li class="cite"><a href=""><span class="icon"></span> Cite</a></li>
+        </ul>';
+    }
+  }
+  return $html;
+}
+
+/**
+ * Implements theme_hook().
+ */
+function theme_delftdora_object_map(array &$variables) {
+  module_load_include('inc', 'delftdora', 'includes/map');
+  $object = $variables['object'];
+  $html = NULL;
+  if ($object) {
+    if (in_array("model:Building", $object->models)) {
+      $locations = delftdora_get_building_locations(array($object));
+      $html = ip_geoloc_output_map_multi_location($locations, 'delftdora_object_map', NULL, 'height:150px;width:292px', NULL, TRUE, 1, array($locations[0]->latitude, $locations[0]->longitude), TRUE);
+    }
+  }
   return $html;
 }

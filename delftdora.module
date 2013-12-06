@@ -35,7 +35,7 @@ function delftdora_theme() {
     'file' => 'theme/theme.inc',
     'variables' => array('solr' => NULL),
   );
-  
+
   $items['delftdora_facets_block_facet_field'] = array(
     'file' => 'theme/theme.inc',
     'template' => 'theme/delftdora-facets-block-facet-field',
@@ -45,12 +45,12 @@ function delftdora_theme() {
       'options' => array(),
     ),
   );
-  
+
   $items['delftdora_mobile_about_this_site'] = array(
     'file' => 'theme/theme.inc',
     'variables' => array(),
   );
-  
+
   $items['delftdora_islandora_search_block'] = array(
     'file' => 'theme/theme.inc',
     'variables' => array(),
@@ -68,7 +68,16 @@ function delftdora_theme() {
 
   $items['delftdora_share_options'] = array(
     'file' => 'theme/theme.inc',
-    'variables' => array(),
+    'variables' => array(
+      'object' => NULL,
+    ),
+  );
+
+  $items['delftdora_object_map'] = array(
+    'file' => 'theme/theme.inc',
+    'variables' => array(
+      'object' => NULL,
+    ),
   );
 
   return $items;
@@ -120,7 +129,7 @@ function delftdora_block_info() {
     'pages' => "islandora/search*",
     'css_class' => 'find-map',
   );
-  
+
   $items['delftdora_browse_catelogry'] = array(
     'info' => t('Browse by my catelogry menu'),
     'status' => 1,
@@ -130,7 +139,7 @@ function delftdora_block_info() {
     'pages' => "<front>",
     'css_class' => 'browse-menu',
   );
-  
+
   $items['delftdora_front_page_find_map'] = array(
     'info' => t('Front page find on map'),
     'status' => 1,
@@ -140,7 +149,7 @@ function delftdora_block_info() {
     'pages' => "<front>",
     'css_class' => 'find-map',
   );
-  
+
   $items['delftdora_share_options'] = array(
     'info' => t('Share options'),
     'status' => 1,
@@ -150,14 +159,26 @@ function delftdora_block_info() {
     'pages' => "islandora/object*",
     'css_class' => 'shareoptions',
   );
+
+  $items['delftdora_object_map'] = array(
+    'info' => t('Object page Map'),
+    'status' => 1,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'region' => 'content',
+    'weight' => -25,
+    'pages' => "islandora/object*",
+  );
   return $items;
 }
 
+/**
+ * Implements hook_block_info_alter().
+ */
 function delftdora_block_info_alter(&$blocks, $theme, $code_blocks) {
-  $blocks['islandora_solr']['simple']['region']='content';
-  $blocks['islandora_solr']['simple']['visibility']=BLOCK_VISIBILITY_LISTED;
-  $blocks['islandora_solr']['simple']['pages']='<front>';
-  $blocks['islandora_solr']['simple']['status']=1;
+  $blocks['islandora_solr']['simple']['region'] = 'content';
+  $blocks['islandora_solr']['simple']['visibility'] = BLOCK_VISIBILITY_LISTED;
+  $blocks['islandora_solr']['simple']['pages'] = '<front>';
+  $blocks['islandora_solr']['simple']['status'] = 1;
   $blocks['islandora_solr']['simple']['weight'] = -55;
 }
 
@@ -178,6 +199,7 @@ function delftdora_block_view($block_name = '') {
         '#theme' => 'delftdora_language_nev',
       );
       break;
+
     case 'delftdora_facets':
       $block['subject'] = NULL;
       if (islandora_solr_results_page($_islandora_solr_queryclass) && user_access('search islandora solr')) {
@@ -215,21 +237,49 @@ function delftdora_block_view($block_name = '') {
         '#theme' => 'delftdora_browse_catelogry',
       );
       break;
-    
-     case 'delftdora_front_page_find_map':
+
+    case 'delftdora_front_page_find_map':
       $block['subject'] = 'Find on map';
       $block['content'] = array(
         '#theme' => 'delftdora_find_map',
       );
       break;
-    
-     case 'delftdora_share_options':
+
+    case 'delftdora_share_options':
+      $path = request_path();
+      $object = NULL;
+      $is_object = (!preg_match('/islandora\/object\/.*\/.+/', $path)) && preg_match('/islandora\/object\/.*/', $path);
+      if ($is_object) {
+        $path = preg_replace('/islandora\/object\/*/', '', $path);
+        if (substr($path, -1) == "/") {
+          $path = substr($path, 0, strlen($path) - 1);
+        }
+        $object = islandora_object_load($path);
+      }
       $block['subject'] = '';
       $block['content'] = array(
         '#theme' => 'delftdora_share_options',
+        '#object' => $object,
       );
       break;
-    
+
+    case 'delftdora_object_map':
+      $path = request_path();
+      $object = NULL;
+      $is_object = (!preg_match('/islandora\/object\/.*\/.+/', $path)) && preg_match('/islandora\/object\/.*/', $path);
+      if ($is_object) {
+        $path = preg_replace('/islandora\/object\/*/', '', $path);
+        if (substr($path, -1) == "/") {
+          $path = substr($path, 0, strlen($path) - 1);
+        }
+        $object = islandora_object_load($path);
+      }
+      $block['subject'] = '';
+      $block['content'] = array(
+        '#theme' => 'delftdora_object_map',
+        '#object' => $object,
+      );
+      break;
   }
   return $block;
 }
@@ -441,11 +491,11 @@ function delftdora_process_object($object) {
       $db_object->ingested_pid = $object->id;
 
       db_merge('delftdora_ingested_pids')
-        ->key(array('ingested_pid' => $object->id))
-        ->fields(array(
-          'processed' => NULL,
-        ))
-        ->execute();
+          ->key(array('ingested_pid' => $object->id))
+          ->fields(array(
+            'processed' => NULL,
+          ))
+          ->execute();
       break;
     }
   }
@@ -473,18 +523,18 @@ function delftdora_islandora_datastream_alter($object, $datastream, &$context) {
 function delftdora_cron() {
   // Gets all unprocessed pids.
   $pids_to_process = db_select('delftdora_ingested_pids', 'd')
-    ->fields('d', array('ingested_pid'))
-    ->condition('processed', NULL, 'IS')
-    ->execute()
-    ->fetchAllAssoc('ingested_pid');
+      ->fields('d', array('ingested_pid'))
+      ->condition('processed', NULL, 'IS')
+      ->execute()
+      ->fetchAllAssoc('ingested_pid');
 
   foreach ($pids_to_process as $pid) {
     $pid = $pid->ingested_pid;
     $result = delftdora_batch_modify($pid);
     if ($result) {
       $num_deleted = db_delete('delftdora_ingested_pids')
-        ->condition('ingested_pid', $pid)
-        ->execute();
+          ->condition('ingested_pid', $pid)
+          ->execute();
     }
   }
 }
@@ -536,8 +586,7 @@ function delftdora_batch_modify($pid) {
         file_delete($disseminator_file);
         if (empty($output)) {
           $return = FALSE;
-          watchdog('delft', 'Error running batchModify for @pid with @disseminator',
-            array('@pid' => $pid, '@disseminator' => $bm_model['sdef'] . '/' . $bm_model['method'])
+          watchdog('delft', 'Error running batchModify for @pid with @disseminator', array('@pid' => $pid, '@disseminator' => $bm_model['sdef'] . '/' . $bm_model['method'])
           );
         }
       }
@@ -616,7 +665,7 @@ function delftdora_form_user_register_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Implementation of hook_views_api().
+ * Implements hook_views_api().
  */
 function delftdora_views_api() {
   return array('api' => 3.0);
